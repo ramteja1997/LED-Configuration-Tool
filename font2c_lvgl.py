@@ -176,24 +176,38 @@ class LVGLFontConverterApp:
         container = tk.Frame(root)
         container.pack(fill="both", expand=True)
 
-        canvas = tk.Canvas(container)
-        scrollbar = tk.Scrollbar(container, orient="vertical", command=canvas.yview)
-        self.scrollable_frame = tk.Frame(canvas)
+        self.canvas = tk.Canvas(container)
+        v_scrollbar = tk.Scrollbar(container, orient="vertical", command=self.canvas.yview)
+        h_scrollbar = tk.Scrollbar(container, orient="horizontal", command=self.canvas.xview)
+        self.scrollable_frame = tk.Frame(self.canvas)
 
         self.scrollable_frame.bind(
             "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         )
 
-        canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
 
-        canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
+        self.canvas.pack(side="left", fill="both", expand=True)
+        v_scrollbar.pack(side="right", fill="y")
+        h_scrollbar.pack(side="bottom", fill="x")
+
+        # enable mouse/trackpad scrolling
+        self._bind_mousewheel(self.canvas)
 
         # add font converters inside scrollable frame
         for i in range(5):
             SingleFontConverter(self.scrollable_frame, i)
+
+    def _bind_mousewheel(self, widget):
+        # Vertical scrolling
+        widget.bind_all("<MouseWheel>", lambda e: widget.yview_scroll(int(-1*(e.delta/120)), "units"))
+        widget.bind_all("<Button-4>", lambda e: widget.yview_scroll(-1, "units"))  # Linux up
+        widget.bind_all("<Button-5>", lambda e: widget.yview_scroll(1, "units"))   # Linux down
+
+        # Horizontal scrolling (Shift + Wheel OR trackpad gesture)
+        widget.bind_all("<Shift-MouseWheel>", lambda e: widget.xview_scroll(int(-1*(e.delta/120)), "units"))
 
 
 if __name__ == "__main__":
