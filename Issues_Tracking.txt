@@ -1,0 +1,5 @@
+Issues tarcking file :
+
+1.The application after installing, its not uninstalling the same application previously downloaded [need to do it manually
+2. while installing application, in the .iss file the path is hardcoded - need to modify generic able to install in different machines
+3. Scrollable bar is working but the Track pad [from laptop] scrolling it's not working
