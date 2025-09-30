@@ -4,6 +4,7 @@ import os
 import webbrowser
 import freetype
 
+
 class SingleFontConverter:
     def __init__(self, master, index):
         self.master = master
@@ -160,24 +161,42 @@ class SingleFontConverter:
                     f.write(",\n")
 
             f.write("};\n\n")
-
-            # Additional glyph description and font descriptor can be implemented here
-
             f.write(f"#endif /* {macro_name} */\n")
 
         return output_filename
+
 
 class LVGLFontConverterApp:
     def __init__(self, root):
         self.root = root
         self.root.title("LVGL Multi Font Converter")
-        self.root.geometry("920x720")
+        self.root.geometry("950x700")
 
+        # ---------- Scrollable Canvas ----------
+        container = tk.Frame(root)
+        container.pack(fill="both", expand=True)
+
+        canvas = tk.Canvas(container)
+        scrollbar = tk.Scrollbar(container, orient="vertical", command=canvas.yview)
+        self.scrollable_frame = tk.Frame(canvas)
+
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+
+        canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        # add font converters inside scrollable frame
         for i in range(5):
-            SingleFontConverter(root, i)
+            SingleFontConverter(self.scrollable_frame, i)
+
 
 if __name__ == "__main__":
-    import webbrowser
     root = tk.Tk()
     app = LVGLFontConverterApp(root)
     root.mainloop()
