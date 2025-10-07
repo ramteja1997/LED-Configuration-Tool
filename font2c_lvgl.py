@@ -295,8 +295,19 @@ class LVGLFontConverterApp:
         self.canvas.configure(yscrollcommand=v_scrollbar.set)
         self.canvas.pack(side="left", fill="both", expand=True)
         v_scrollbar.pack(side="right", fill="y")
-        self.file_blocks = []
+
+        # Add title and info label here
+        title_label = tk.Label(self.scrollable_frame, text="LVGL Multi Font Converter", font=("Arial", 16, "bold"))
+        title_label.pack(pady=(10, 0))
+        info_text = ("Convert TTF and WOFF fonts to C array.\n"
+                     "With this free online font converter tool you can create C array from any TTF or WOFF. "
+                     "You can select ranges of Unicode characters and specify the bpp (bit-per-pixel).")
+        info_label = tk.Label(self.scrollable_frame, text=info_text, justify="center", wraplength=900)
+        info_label.pack(pady=(0, 15))
+
         self.first_block = FirstFontBlock(self.scrollable_frame)
+        self.file_blocks = []
+
         self.buttons_frame = tk.Frame(self.scrollable_frame)
         self.buttons_frame.pack(fill="x", pady=10)
         self.add_font_btn = tk.Button(
@@ -315,8 +326,8 @@ class LVGLFontConverterApp:
         widget.bind_all("<Button-5>", lambda e: widget.yview_scroll(1, "units"))
 
     def add_font_block(self):
-        if len(self.file_blocks) >= MAX_EXTRA_FONTS:
-            messagebox.showwarning("Limit reached", f"Maximum {MAX_EXTRA_FONTS + 1} fonts supported total.")
+        if len(self.file_blocks) > MAX_EXTRA_FONTS:
+            messagebox.showwarning("Limit reached", f"Maximum {MAX_EXTRA_FONTS} fonts supported total.")
             return
         block = FontFileEntry(self.scrollable_frame, len(self.file_blocks) + 1, self.remove_font_block)
         block.frame.pack(before=self.buttons_frame, fill="x", padx=5, pady=5)
