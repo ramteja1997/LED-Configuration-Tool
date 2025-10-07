@@ -6,18 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="697e1680-bd07-4ac1-9ecc-edd554ace574" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/font2c_lvgl/Analysis-00.toc" beforeDir="false" afterPath="$PROJECT_DIR$/build/font2c_lvgl/Analysis-00.toc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/font2c_lvgl/EXE-00.toc" beforeDir="false" afterPath="$PROJECT_DIR$/build/font2c_lvgl/EXE-00.toc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/font2c_lvgl/PKG-00.toc" beforeDir="false" afterPath="$PROJECT_DIR$/build/font2c_lvgl/PKG-00.toc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/font2c_lvgl/PYZ-00.toc" beforeDir="false" afterPath="$PROJECT_DIR$/build/font2c_lvgl/PYZ-00.toc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/font2c_lvgl/base_library.zip" beforeDir="false" afterPath="$PROJECT_DIR$/build/font2c_lvgl/base_library.zip" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/font2c_lvgl/font2c_lvgl.pkg" beforeDir="false" afterPath="$PROJECT_DIR$/build/font2c_lvgl/font2c_lvgl.pkg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/font2c_lvgl/generated-a168c9af758f5e8515b6a102567a4216f71c2548c1cb273acfbc06136ce2cddb.ico" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/font2c_lvgl/warn-font2c_lvgl.txt" beforeDir="false" afterPath="$PROJECT_DIR$/build/font2c_lvgl/warn-font2c_lvgl.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/font2c_lvgl/xref-font2c_lvgl.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/font2c_lvgl/xref-font2c_lvgl.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build_installer.py" beforeDir="false" afterPath="$PROJECT_DIR$/build_installer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/font2c_lvgl.py" beforeDir="false" afterPath="$PROJECT_DIR$/font2c_lvgl.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/font2c_lvgl.spec" beforeDir="false" afterPath="$PROJECT_DIR$/font2c_lvgl.spec" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,26 +30,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.build_clean.executor": "Run",
-    "Python.build_installer.executor": "Run",
-    "Python.font2c.executor": "Run",
-    "Python.font2c_5.executor": "Run",
-    "Python.font2c_lvgl.executor": "Run",
-    "Python.font2c_lvgl_1file.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "dev2",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.build_clean.executor&quot;: &quot;Run&quot;,
+    &quot;Python.build_installer.executor&quot;: &quot;Run&quot;,
+    &quot;Python.font2c.executor&quot;: &quot;Run&quot;,
+    &quot;Python.font2c_5.executor&quot;: &quot;Run&quot;,
+    &quot;Python.font2c_lvgl.executor&quot;: &quot;Run&quot;,
+    &quot;Python.font2c_lvgl_1file.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dev2&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;advanced.settings&quot;
   }
-}]]></component>
+}</component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-ce6832f46686-7b97d883f26b-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.25557.178" />
+        <option value="bundled-python-sdk-164cda30dcd9-0af03a5fa574-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.26830.99" />
       </set>
     </attachedChunks>
   </component>
