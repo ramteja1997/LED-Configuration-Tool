@@ -6,6 +6,7 @@ import threading
 import http.server
 import socketserver
 import webbrowser
+import psutil  # New dependency for process management
 
 # Configurations:
 PYINSTALLER = "pyinstaller"
@@ -71,10 +72,24 @@ def build_exe(icon_path):
     print(f"EXE built successfully at {exe_path}")
     return exe_path
 
+def kill_font2c_processes():
+    print_step("5", "Checking for running LVGL Font Generator processes to terminate...")
+    killed_any = False
+    for proc in psutil.process_iter(['name', 'exe']):
+        try:
+            if proc.info['name'] and proc.info['name'].lower() == 'font2c_lvgl.exe':
+                print(f"Terminating process PID={proc.pid} ({proc.info['name']})")
+                proc.terminate()
+                killed_any = True
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    if not killed_any:
+        print("No running font2c_lvgl.exe processes found.")
+
 def run_uninstaller_and_clean():
     uninstaller_path = os.path.join(INSTALL_DIR, "unins000.exe")
     if os.path.exists(uninstaller_path):
-        print_step(5, f"Running uninstaller at: {uninstaller_path}")
+        print_step(6, f"Running uninstaller at: {uninstaller_path}")
         try:
             subprocess.run([uninstaller_path, "/VERYSILENT", "/NORESTART"], check=True)
             print("Uninstalled previous version.")
@@ -84,18 +99,18 @@ def run_uninstaller_and_clean():
 
     installed_exe = os.path.join(INSTALL_DIR, "font2c_lvgl.exe")
     if os.path.exists(installed_exe):
-        print_step("5a", f"Deleting installed EXE manually: {installed_exe}")
+        print_step("6a", f"Deleting installed EXE manually: {installed_exe}")
         try:
             os.remove(installed_exe)
             print("Manual removal succeeded.")
         except Exception as e:
             print(f"Failed to remove installed EXE: {e}")
     else:
-        print_step("5a", "No installed EXE found for manual removal.")
+        print_step("6a", "No installed EXE found for manual removal.")
 
 def delete_existing_installer():
     installer_path = os.path.join(OUTPUT_FOLDER, INSTALLER_FILENAME)
-    print_step("5b", f"Checking for existing installer at: {installer_path}")
+    print_step(7, f"Checking for existing installer at: {installer_path}")
     if os.path.exists(installer_path):
         try:
             os.remove(installer_path)
@@ -104,7 +119,7 @@ def delete_existing_installer():
             print(f"Failed to delete installer file: {e}")
 
 def run_installer_compiler():
-    print_step(6, f"Running Inno Setup Compiler on {APP_ISS}")
+    print_step(8, f"Running Inno Setup Compiler on {APP_ISS}")
     subprocess.run([ISCC_PATH, APP_ISS], check=True)
     print("Installer created successfully.")
 
@@ -114,7 +129,6 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-type", "text/html")
             self.end_headers()
-            # Serve minimal HTML page with download link
             body = f"""
             <html><head><title>LVGL Font Generator Installer</title></head>
             <body>
@@ -126,12 +140,15 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         else:
             super().do_GET()
 
-def serve_installer():
-    os.chdir(OUTPUT_FOLDER)
+def serve_installer(folder=OUTPUT_FOLDER):
+    if not os.path.exists(folder):
+        print(f"Error: Directory to serve does not exist: {folder}")
+        sys.exit(1)
+    os.chdir(folder)
     handler = CustomHandler
     httpd = socketserver.TCPServer(("", PORT), handler)
     url = f"http://localhost:{PORT}/"
-    print(f"Serving installer page at {url}")
+    print(f"Serving folder '{folder}' at {url}")
     webbrowser.open(url)
     def serve():
         httpd.serve_forever()
@@ -159,6 +176,7 @@ def main():
         print("Build failed. Aborting.")
         sys.exit(1)
 
+    kill_font2c_processes()
     run_uninstaller_and_clean()
 
     if not os.path.exists(OUTPUT_FOLDER):
@@ -170,7 +188,7 @@ def main():
     run_installer_compiler()
 
     httpd = serve_installer()
-    input("Press Enter to stop the server and exit...\n")
+    input("Press Enter to stop serving and exit...\n")
     httpd.shutdown()
 
     print("\n" + "#" * 60)

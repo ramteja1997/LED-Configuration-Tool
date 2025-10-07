@@ -120,7 +120,6 @@ class FontFileEntry:
         self.range_text.insert("1.0", "0x20-0x7F")
         self.range_text.pack(fill="x", pady=5)
 
-        # Unicode Character Ranges link for every font block
         link = tk.Label(self.frame, text="Unicode Character Ranges", fg="blue", cursor="hand2")
         link.pack(anchor="w", pady=1)
         link.bind("<Button-1>", lambda e: webbrowser.open_new("https://jrgraphix.net/research/unicode.php"))
@@ -157,19 +156,22 @@ class FontFileEntry:
 
 
 def generate_lvgl_font_c_multi(font_inputs, out_font_name, size, bpp):
+    # FIXED OUTPUT PATH
+    first_font_path = font_inputs[0][0]
+    output_folder = os.path.dirname(first_font_path)
+    base_name = out_font_name
+    output_filename = os.path.join(output_folder, f"{base_name}.c")
+    counter = 1
+    while os.path.exists(output_filename):
+        output_filename = os.path.join(output_folder, f"{base_name}({counter}).c")
+        counter += 1
+
     glyph_entries = []
     for font_path, codepoints in font_inputs:
         face = freetype.Face(font_path)
         face.set_pixel_sizes(0, size)
         for code in codepoints:
             glyph_entries.append((font_path, face, code))
-
-    base_name = out_font_name
-    output_filename = os.path.abspath(f"{base_name}.c")
-    counter = 1
-    while os.path.exists(output_filename):
-        output_filename = os.path.abspath(f"{base_name}({counter}).c")
-        counter += 1
 
     glyph_descs = []
     bitmap_offset = 0
@@ -271,6 +273,7 @@ def generate_lvgl_font_c_multi(font_inputs, out_font_name, size, bpp):
         f.write("    .dsc = &font_dsc\n")
         f.write("};\n\n")
         f.write(f"#endif /* {macro_name} */\n")
+
     return output_filename
 
 
