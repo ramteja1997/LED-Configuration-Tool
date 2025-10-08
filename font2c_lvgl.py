@@ -4,6 +4,7 @@ import os
 import webbrowser
 import freetype
 
+# Allows maximum ranges 5 and ttf file upload 10
 MAX_EXTRA_FONTS = 10
 MAX_RANGES_PER_FONT = 5
 
@@ -18,100 +19,48 @@ def pack_4bpp(buffer, width, rows):
             packed.append((n1 << 4) | n2)
     return packed
 
-def parse_unicode_ranges(range_text):
-    items = range_text.replace('\n', ',').split(',')
-    used_ranges = [i.strip() for i in items if i.strip()]
-    if len(used_ranges) > MAX_RANGES_PER_FONT:
+def parse_individual_ranges(range_text):
+    items = [i.strip() for i in range_text.replace('\n', ',').split(',') if i.strip()]
+    if len(items) > MAX_RANGES_PER_FONT:
         raise ValueError(f"Maximum {MAX_RANGES_PER_FONT} ranges or codepoints allowed!")
-    codepoints = set()
-    for item in used_ranges:
+    ranges = []
+    for item in items:
         if '-' in item:
             start, end = item.split('-', 1)
             start = int(start, 0)
             end = int(end, 0)
             if end < start:
                 raise ValueError(f"Invalid range: {item}")
-            codepoints.update(range(start, end + 1))
+            ranges.append((start, end))
         else:
-            codepoints.add(int(item, 0))
-    return sorted(codepoints)
+            val = int(item, 0)
+            ranges.append((val, val))
+    return ranges
 
-def font_has_any_codepoints(font_path, codepoints):
-    face = freetype.Face(font_path)
-    present = []
-    for code in codepoints:
-        if face.get_char_index(code) != 0:
-            present.append(code)
-    return bool(present), present
-
-class FirstFontBlock:
-    def __init__(self, master):
-        self.master = master
-        self.frame = tk.Frame(master, relief=tk.RIDGE, bd=2, padx=10, pady=10)
-        self.frame.pack(pady=5, fill="x")
-
-        row1 = tk.Frame(self.frame)
-        row1.pack(fill="x", pady=2)
-        tk.Label(row1, text=f"Font Name:", width=12).pack(side="left")
-        self.name_var = tk.StringVar()
-        tk.Entry(row1, textvariable=self.name_var, width=20).pack(side="left", padx=5)
-        tk.Label(row1, text="TTF File:", width=10).pack(side="left")
-        self.path_var = tk.StringVar()
-        self.path_entry = tk.Entry(row1, textvariable=self.path_var, width=40)
-        self.path_entry.pack(side="left", padx=5)
-        tk.Button(row1, text="Browse", command=self.browse_file).pack(side="left")
-
-        row2 = tk.Frame(self.frame)
-        row2.pack(fill="x", pady=5)
-        tk.Label(row2, text="Font Size (px):", width=15).pack(side="left")
-        self.size_var = tk.IntVar(value=16)
-        tk.Spinbox(row2, from_=8, to=72, textvariable=self.size_var, width=5).pack(side="left", padx=5)
-        tk.Label(row2, text="Bpp:", width=6).pack(side="left")
-        self.bpp_var = tk.StringVar(value='1')
-        ttk.Combobox(row2, textvariable=self.bpp_var, values=['1', '2', '3', '4', '8'], width=3, state='readonly').pack(
-            side="left", padx=5)
-
-        tk.Label(self.frame, text="Range (max 5, comma/line-separated)").pack(anchor="w")
-        self.range_text = tk.Text(self.frame, height=3, width=70)
-        self.range_text.insert("1.0", "0x20-0x7F")
-        self.range_text.pack(fill="x", pady=5)
-        link = tk.Label(self.frame, text="Unicode Character Ranges", fg="blue", cursor="hand2")
-        link.pack(anchor="w", pady=1)
-        link.bind("<Button-1>", lambda e: webbrowser.open_new("https://jrgraphix.net/research/unicode.php"))
-
-        self.status_label = tk.Label(self.frame, text="", fg="green")
-        self.status_label.pack(anchor="w", pady=2)
-
-    def browse_file(self):
-        filename = filedialog.askopenfilename(filetypes=[("TTF Font Files", "*.ttf")])
-        if filename:
-            if not filename.lower().endswith('.ttf'):
-                messagebox.showerror("Invalid File", "TTF file type is expected.")
-                return
-            self.path_var.set(filename)
-
-    def get_font_data(self):
-        return {
-            "font_name": self.name_var.get().strip(),
-            "font_path": self.path_var.get().strip(),
-            "size": self.size_var.get(),
-            "bpp": self.bpp_var.get(),
-            "range": self.range_text.get("1.0", "end").strip(),
-            "widget": self,
-        }
-
-    def set_status(self, msg, error=False):
-        self.status_label.config(text=msg, fg="red" if error else "green")
+class StatusText(tk.Text):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self.config(state="disabled", bg="#f0f0f0", relief=tk.FLAT, height=7, wrap="word")
+        self.tag_configure("success", foreground="green")
+        self.tag_configure("error", foreground="red")
+    def set_status_messages(self, messages):
+        self.config(state="normal")
+        self.delete("1.0", "end")
+        for msg, is_success in messages:
+            tag = "success" if is_success else "error"
+            self.insert("end", msg + "\n", tag)
+        self.config(state="disabled")
 
 class FontFileEntry:
     def __init__(self, master, index, remove_callback=None):
         self.master = master
         self.index = index
         self.remove_callback = remove_callback
-        self.frame = tk.Frame(master, relief=tk.RIDGE, bd=2, padx=10, pady=10)
-        self.frame.pack(pady=5, fill="x")
+        self.frame = tk.Frame(master, relief=tk.GROOVE, bd=2, padx=8, pady=8)
+        self.frame.pack(fill="x", padx=8, pady=8)
+
         row1 = tk.Frame(self.frame)
-        row1.pack(fill="x", pady=2)
+        row1.pack(fill="x", pady=(0,3))
         tk.Label(row1, text=f"Font file {index + 1}:", width=12).pack(side="left")
         self.path_var = tk.StringVar()
         self.path_entry = tk.Entry(row1, textvariable=self.path_var, width=45)
@@ -119,10 +68,12 @@ class FontFileEntry:
         browse_btn = tk.Button(row1, text="Browse", command=self.browse_file)
         browse_btn.pack(side="left")
 
-        tk.Label(self.frame, text="Range (max 5, comma/line-separated)").pack(anchor="w")
-        self.range_text = tk.Text(self.frame, height=3, width=70)
+        row2 = tk.Frame(self.frame)
+        row2.pack(fill="x", pady=(0,2))
+        tk.Label(row2, text="Range (max 5, comma/line-separated):").pack(anchor="w")
+        self.range_text = tk.Text(row2, height=3, width=70)
         self.range_text.insert("1.0", "0x20-0x7F")
-        self.range_text.pack(fill="x", pady=5)
+        self.range_text.pack(fill="both", pady=(0,2))
 
         link = tk.Label(self.frame, text="Unicode Character Ranges", fg="blue", cursor="hand2")
         link.pack(anchor="w", pady=1)
@@ -130,10 +81,10 @@ class FontFileEntry:
 
         if remove_callback:
             self.remove_btn = tk.Button(self.frame, text="🗑️ Remove", command=self.remove_self)
-            self.remove_btn.pack(fill="x", pady=8)
+            self.remove_btn.pack(fill="x", pady=(2,8))
 
-        self.status_label = tk.Label(self.frame, text="", fg="green")
-        self.status_label.pack(anchor="w", pady=2)
+        self.status_text = StatusText(self.frame)
+        self.status_text.pack(fill="x", pady=2)
 
     def browse_file(self):
         filename = filedialog.askopenfilename(filetypes=[("TTF Font Files", "*.ttf")])
@@ -154,9 +105,8 @@ class FontFileEntry:
             "range": self.range_text.get("1.0", "end").strip(),
             "widget": self,
         }
-
-    def set_status(self, msg, error=False):
-        self.status_label.config(text=msg, fg="red" if error else "green")
+    def set_status(self, messages):
+        self.status_text.set_status_messages(messages)
 
 def generate_lvgl_font_c_multi(font_inputs, out_font_name, size, bpp):
     first_font_path = font_inputs[0][0]
@@ -179,7 +129,6 @@ def generate_lvgl_font_c_multi(font_inputs, out_font_name, size, bpp):
             except Exception:
                 pass
 
-    # Fail-safe check (should be rare because of GUI check)
     if not glyph_entries:
         ranges = []
         for font_path, codepoints in font_inputs:
@@ -207,7 +156,8 @@ def generate_lvgl_font_c_multi(font_inputs, out_font_name, size, bpp):
 
         for font_path, face, code in glyph_entries:
             try:
-                ft_flags = freetype.FT_LOAD_RENDER | (freetype.FT_LOAD_TARGET_MONO if bpp == 1 else freetype.FT_LOAD_TARGET_NORMAL)
+                ft_flags = freetype.FT_LOAD_RENDER | (
+                    freetype.FT_LOAD_TARGET_MONO if bpp == 1 else freetype.FT_LOAD_TARGET_NORMAL)
                 face.load_char(chr(code), ft_flags)
             except Exception:
                 glyph_descs.append((bitmap_offset, 0, 0, 0, 0, 0))
@@ -287,6 +237,64 @@ def generate_lvgl_font_c_multi(font_inputs, out_font_name, size, bpp):
 
     return output_filename
 
+def check_block_ranges(block):
+    data = block.get_font_data()
+    messages = []
+    if not data['font_path'] or not data['font_path'].lower().endswith('.ttf') or not os.path.isfile(data['font_path']):
+        messages.append(("File missing or not TTF.", False))
+        block.set_status(messages)
+        return False
+    if not data['range'].strip():
+        messages.append(("Enter Unicode range.", False))
+        block.set_status(messages)
+        return False
+    try:
+        ranges = parse_individual_ranges(data['range'])
+    except Exception as e:
+        messages.append((f"Unicode range error: {e}", False))
+        block.set_status(messages)
+        return False
+    if not ranges:
+        messages.append(("Unicode range is empty.", False))
+        block.set_status(messages)
+        return False
+    font_path = data['font_path']
+    all_supported = True
+    for (start, end) in ranges:
+        face = freetype.Face(font_path)
+        unsupported_chars = []
+        for code in range(start, end + 1):
+            if face.get_char_index(code) == 0:
+                unsupported_chars.append(code)
+        if unsupported_chars:
+            all_supported = False
+            def format_range(codes):
+                result = []
+                sorted_codes = sorted(codes)
+                s = e = sorted_codes[0]
+                for c in sorted_codes[1:]:
+                    if c == e + 1:
+                        e = c
+                    else:
+                        if s == e:
+                            result.append(f"U+{s:04X}")
+                        else:
+                            result.append(f"U+{s:04X}-U+{e:04X}")
+                        s = e = c
+                if s == e:
+                    result.append(f"U+{s:04X}")
+                else:
+                    result.append(f"U+{s:04X}-U+{e:04X}")
+                return ", ".join(result)
+            msg = (
+                f"Range 0x{start:04X}-0x{end:04X} unsupported, missing characters: {format_range(unsupported_chars)}"
+            )
+            messages.append((msg, False))
+        else:
+            messages.append((f"Range 0x{start:04X}-0x{end:04X} fully supported.", True))
+    block.set_status(messages)
+    return all_supported
+
 class LVGLFontConverterApp:
     def __init__(self, root):
         self.root = root
@@ -294,8 +302,27 @@ class LVGLFontConverterApp:
         self.root.geometry("1000x750")
         container = tk.Frame(root)
         container.pack(fill="both", expand=True)
-        self.canvas = tk.Canvas(container)
-        v_scrollbar = tk.Scrollbar(container, orient="vertical", command=self.canvas.yview)
+
+        # font name, size, bpp at top globally
+        settings_fr = tk.Frame(container, pady=5, padx=5)
+        settings_fr.pack(fill="x", padx=5, pady=5)
+
+        tk.Label(settings_fr, text="Font Name:", width=12).pack(side="left")
+        self.font_name_var = tk.StringVar()
+        tk.Entry(settings_fr, textvariable=self.font_name_var, width=20).pack(side="left", padx=5)
+        tk.Label(settings_fr, text="Font Size (px):", width=13).pack(side="left", padx=(15,0))
+        self.font_size_var = tk.IntVar(value=16)
+        tk.Spinbox(settings_fr, from_=8, to=72, textvariable=self.font_size_var, width=5).pack(side="left", padx=3)
+        tk.Label(settings_fr, text="Bpp:", width=6).pack(side="left", padx=(15,0))
+        self.bpp_var = tk.StringVar(value='1')
+        ttk.Combobox(settings_fr, textvariable=self.bpp_var, values=['1', '2', '3', '4', '8'], width=3, state='readonly').pack(
+            side="left", padx=3)
+
+        # Scrollable block panel
+        canvas_fr = tk.Frame(container)
+        canvas_fr.pack(fill="both", expand=True)
+        self.canvas = tk.Canvas(canvas_fr)
+        v_scrollbar = tk.Scrollbar(canvas_fr, orient="vertical", command=self.canvas.yview)
         self.scrollable_frame = tk.Frame(self.canvas)
         self.scrollable_frame.bind(
             "<Configure>",
@@ -305,20 +332,10 @@ class LVGLFontConverterApp:
         self.canvas.configure(yscrollcommand=v_scrollbar.set)
         self.canvas.pack(side="left", fill="both", expand=True)
         v_scrollbar.pack(side="right", fill="y")
-
-        # Add title and info label here
-        title_label = tk.Label(self.scrollable_frame, text="LVGL Multi Font Converter", font=("Arial", 16, "bold"))
-        title_label.pack(pady=(10, 0))
-        info_text = ("Convert TTF and WOFF fonts to C array.\n"
-                     "With this free online font converter tool you can create C array from any TTF or WOFF. "
-                     "You can select ranges of Unicode characters and specify the bpp (bit-per-pixel).")
-        info_label = tk.Label(self.scrollable_frame, text=info_text, justify="center", wraplength=900)
-        info_label.pack(pady=(0, 15))
-
-        self.first_block = FirstFontBlock(self.scrollable_frame)
         self.file_blocks = []
+        self.add_font_block()
 
-        self.buttons_frame = tk.Frame(self.scrollable_frame)
+        self.buttons_frame = tk.Frame(container)
         self.buttons_frame.pack(fill="x", pady=10)
         self.add_font_btn = tk.Button(
             self.buttons_frame, text="+ Include another font", command=self.add_font_block
@@ -328,6 +345,7 @@ class LVGLFontConverterApp:
             self.buttons_frame, text="Submit", command=self.submit_all, bg='black', fg='white'
         )
         self.submit_btn.pack(side="top", pady=5, ipadx=20)
+
         self._bind_mousewheel(self.canvas)
 
     def _bind_mousewheel(self, widget):
@@ -339,8 +357,8 @@ class LVGLFontConverterApp:
         if len(self.file_blocks) >= MAX_EXTRA_FONTS:
             messagebox.showwarning("Limit reached", f"Maximum {MAX_EXTRA_FONTS} fonts supported total.")
             return
-        block = FontFileEntry(self.scrollable_frame, len(self.file_blocks) + 1, self.remove_font_block)
-        block.frame.pack(before=self.buttons_frame, fill="x", padx=5, pady=5)
+        block = FontFileEntry(self.scrollable_frame, len(self.file_blocks), self.remove_font_block)
+        block.frame.pack(fill="x", padx=5, pady=8)
         self.file_blocks.append(block)
 
     def remove_font_block(self, block):
@@ -348,70 +366,43 @@ class LVGLFontConverterApp:
             self.file_blocks.remove(block)
 
     def submit_all(self):
-        fb = self.first_block.get_font_data()
-        fb['widget'].set_status("")
-        if not fb['font_name']:
-            fb['widget'].set_status("Please enter the font name.", error=True)
+        font_name = self.font_name_var.get().strip()
+        bpp = self.bpp_var.get()
+        font_size = self.font_size_var.get()
+        if not font_name:
+            messagebox.showerror("Input Error", "Please enter a font name (top settings).")
             return
-        if not fb['font_path'] or not fb['font_path'].lower().endswith('.ttf') or not os.path.isfile(fb['font_path']):
-            fb['widget'].set_status("File missing or not TTF.", error=True)
-            return
-        if not fb['range'].strip():
-            fb['widget'].set_status("Enter Unicode range.", error=True)
-            return
-        try:
-            main_codepoints = parse_unicode_ranges(fb['range'])
-        except Exception as e:
-            fb['widget'].set_status(f"Unicode range error: {e}", error=True)
-            return
-        if not main_codepoints:
-            fb['widget'].set_status("Unicode range is empty.", error=True)
+        if not bpp or not font_size:
+            messagebox.showerror("Input Error", "Specify valid font size and bpp (top settings).")
             return
 
-        font_inputs = [(fb['font_path'], main_codepoints)]
-        for b in self.file_blocks:
-            data = b.get_font_data()
-            b.set_status("")
-            if not data['font_path'] or not data['font_path'].lower().endswith('.ttf') or not os.path.isfile(data['font_path']):
-                b.set_status("File missing or not TTF.", error=True)
-                return
+        ok_flags = []
+        for block in self.file_blocks:
+            ok_flags.append(check_block_ranges(block))
+
+        if not all(ok_flags):
+            return
+
+        font_inputs = []
+        for block in self.file_blocks:
+            data = block.get_font_data()
             try:
-                codepoints = parse_unicode_ranges(data['range'])
-            except Exception as e:
-                b.set_status(f"Unicode range error: {e}", error=True)
-                return
-            if not codepoints:
-                b.set_status("Unicode range is empty.", error=True)
-                return
-            font_inputs.append((data['font_path'], codepoints))
-
-        # CRITICAL: Check if at least one codepoint in each font's specified range is available in the font
-        check_errors = []
-        for idx, (font_path, codepoints) in enumerate(font_inputs):
-            has_any, present = font_has_any_codepoints(font_path, codepoints)
-            if not has_any:
-                if len(codepoints) == 1:
-                    desc = f"{codepoints[0]:#x}"
-                else:
-                    desc = f"{codepoints[0]:#x}-{codepoints[-1]:#x}"
-                name = os.path.basename(font_path)
-                check_errors.append(f'Font "{name}" doesn\'t have any characters included in range {desc}')
-        if check_errors:
-            for widget in [fb['widget']] + [b for b in self.file_blocks]:
-                widget.set_status(f"Error: {'; '.join(check_errors)}", error=True)
-            return
-
-        for widget in [fb['widget']] + [b for b in self.file_blocks]:
-            widget.set_status("Processing...")
+                ranges = parse_individual_ranges(data["range"])
+            except Exception:
+                continue  # skip block if parsing fails
+            codepoints = []
+            for (start, end) in ranges:
+                codepoints.extend(range(start, end + 1))
+            font_inputs.append((data["font_path"], codepoints))
 
         try:
-            out_file = generate_lvgl_font_c_multi(font_inputs, fb['font_name'], int(fb['size']), int(fb['bpp']))
-            for widget in [fb['widget']] + [b for b in self.file_blocks]:
-                widget.set_status(f"Success: {os.path.basename(out_file)}", error=False)
+            out_file = generate_lvgl_font_c_multi(font_inputs, font_name, int(font_size), int(bpp))
+            for block in self.file_blocks:
+                block.set_status([("Font generated: " + os.path.basename(out_file), True)])
             messagebox.showinfo("Success", f"Generated font file:\n{out_file}")
-        except Exception as ex:
-            for widget in [fb['widget']] + [b for b in self.file_blocks]:
-                widget.set_status(f"Error: {ex}", error=True)
+        except Exception as e:
+            for block in self.file_blocks:
+                block.set_status([(f"Error during font generation: {e}", False)])
 
 if __name__ == "__main__":
     root = tk.Tk()
