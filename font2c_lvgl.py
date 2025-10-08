@@ -7,7 +7,6 @@ import freetype
 MAX_EXTRA_FONTS = 10
 MAX_RANGES_PER_FONT = 5
 
-
 def pack_4bpp(buffer, width, rows):
     packed = []
     for y in range(rows):
@@ -18,7 +17,6 @@ def pack_4bpp(buffer, width, rows):
             n2 = int(round(p2 / 17.0))
             packed.append((n1 << 4) | n2)
     return packed
-
 
 def parse_unicode_ranges(range_text):
     items = range_text.replace('\n', ',').split(',')
@@ -38,6 +36,13 @@ def parse_unicode_ranges(range_text):
             codepoints.add(int(item, 0))
     return sorted(codepoints)
 
+def font_has_any_codepoints(font_path, codepoints):
+    face = freetype.Face(font_path)
+    present = []
+    for code in codepoints:
+        if face.get_char_index(code) != 0:
+            present.append(code)
+    return bool(present), present
 
 class FirstFontBlock:
     def __init__(self, master):
@@ -98,7 +103,6 @@ class FirstFontBlock:
     def set_status(self, msg, error=False):
         self.status_label.config(text=msg, fg="red" if error else "green")
 
-
 class FontFileEntry:
     def __init__(self, master, index, remove_callback=None):
         self.master = master
@@ -154,9 +158,7 @@ class FontFileEntry:
     def set_status(self, msg, error=False):
         self.status_label.config(text=msg, fg="red" if error else "green")
 
-
 def generate_lvgl_font_c_multi(font_inputs, out_font_name, size, bpp):
-    # FIXED OUTPUT PATH
     first_font_path = font_inputs[0][0]
     output_folder = os.path.dirname(first_font_path)
     base_name = out_font_name
@@ -171,7 +173,21 @@ def generate_lvgl_font_c_multi(font_inputs, out_font_name, size, bpp):
         face = freetype.Face(font_path)
         face.set_pixel_sizes(0, size)
         for code in codepoints:
-            glyph_entries.append((font_path, face, code))
+            try:
+                face.load_char(chr(code))
+                glyph_entries.append((font_path, face, code))
+            except Exception:
+                pass
+
+    # Fail-safe check (should be rare because of GUI check)
+    if not glyph_entries:
+        ranges = []
+        for font_path, codepoints in font_inputs:
+            if len(codepoints) == 1:
+                ranges.append(f"{codepoints[0]:#x}")
+            else:
+                ranges.append(f"{codepoints[0]:#x}-{codepoints[-1]:#x}")
+        raise Exception(f"No characters found in supplied font(s) for range: {', '.join(ranges)}")
 
     glyph_descs = []
     bitmap_offset = 0
@@ -191,10 +207,7 @@ def generate_lvgl_font_c_multi(font_inputs, out_font_name, size, bpp):
 
         for font_path, face, code in glyph_entries:
             try:
-                if bpp == 1:
-                    ft_flags = freetype.FT_LOAD_RENDER | freetype.FT_LOAD_TARGET_MONO
-                else:
-                    ft_flags = freetype.FT_LOAD_RENDER | freetype.FT_LOAD_TARGET_NORMAL
+                ft_flags = freetype.FT_LOAD_RENDER | (freetype.FT_LOAD_TARGET_MONO if bpp == 1 else freetype.FT_LOAD_TARGET_NORMAL)
                 face.load_char(chr(code), ft_flags)
             except Exception:
                 glyph_descs.append((bitmap_offset, 0, 0, 0, 0, 0))
@@ -213,10 +226,7 @@ def generate_lvgl_font_c_multi(font_inputs, out_font_name, size, bpp):
                     f.write("    ")
                     for b in range(row_bytes):
                         idx = y * row_bytes + b
-                        if idx < len(buffer):
-                            f.write(f"0x{buffer[idx]:02X}")
-                        else:
-                            f.write("0x00")
+                        f.write(f"0x{buffer[idx]:02X}" if idx < len(buffer) else "0x00")
                         if not (y == rows - 1 and b == row_bytes - 1):
                             f.write(", ")
                     f.write(",\n")
@@ -224,8 +234,10 @@ def generate_lvgl_font_c_multi(font_inputs, out_font_name, size, bpp):
             else:
                 packed = pack_4bpp(buffer, width, rows)
                 for i in range(0, len(packed), 12):
-                    f.write("    " + ", ".join(f"0x{b:02X}" for b in packed[i:i + 12]) + ",\n")
+                    chunk = ", ".join(f"0x{b:02X}" for b in packed[i:i + 12])
+                    f.write(f"    {chunk},\n")
                 bitmap_offset += len(packed)
+
             glyph_descs.append(
                 (bitmap_offset, width, rows, face.glyph.advance.x // 64, face.glyph.bitmap_left, face.glyph.bitmap_top))
             unicode_list.append(code)
@@ -234,13 +246,10 @@ def generate_lvgl_font_c_multi(font_inputs, out_font_name, size, bpp):
         f.write("static const lv_font_fmt_txt_glyph_dsc_t glyph_dsc[] = {\n")
         offset = 0
         for desc in glyph_descs:
-            f.write(
-                f"    {{ .bitmap_index = {offset}, .adv_w = {desc[3]}, .box_w = {desc[1]}, .box_h = {desc[2]}, .ofs_x = {desc[4]}, .ofs_y = {desc[5]} }},\n")
+            f.write(f"    {{ .bitmap_index = {offset}, .adv_w = {desc[3]}, .box_w = {desc[1]},"
+                    f" .box_h = {desc[2]}, .ofs_x = {desc[4]}, .ofs_y = {desc[5]} }},\n")
             if desc[1] > 0 and desc[2] > 0:
-                if bpp == 1:
-                    cells = ((desc[1] + 7) // 8) * desc[2]
-                else:
-                    cells = ((desc[1] + 1) // 2) * desc[2]
+                cells = ((desc[1] + 7) // 8 if bpp == 1 else (desc[1] + 1) // 2) * desc[2]
                 offset += cells
         f.write("};\n\n")
 
@@ -251,19 +260,20 @@ def generate_lvgl_font_c_multi(font_inputs, out_font_name, size, bpp):
 
         f.write("static const lv_font_fmt_txt_cmap_t cmaps[] = {\n")
         f.write("    {\n")
-        f.write(
-            f"        .range_start = 0x{unicode_list[0]:04X}, .range_length = {len(unicode_list)}, .glyph_id_start = 1,\n")
-        f.write(
-            "        .unicode_list = unicode_list_0, .glyph_id_ofs_list = NULL, .list_length = %d, .type = LV_FONT_FMT_TXT_CMAP_FORMAT0_TINY\n" % len(
-                unicode_list))
+        f.write(f"        .range_start = 0x{unicode_list[0]:04X}, .range_length = {len(unicode_list)},"
+                f" .glyph_id_start = 1,\n")
+        f.write(f"        .unicode_list = unicode_list_0, .glyph_id_ofs_list = NULL,"
+                f" .list_length = {len(unicode_list)}, .type = LV_FONT_FMT_TXT_CMAP_FORMAT0_TINY\n")
         f.write("    }\n};\n\n")
+
         f.write("static lv_font_fmt_txt_desc_t font_dsc = {\n")
         f.write("    .glyph_bitmap = glyph_bitmap,\n")
         f.write("    .glyph_dsc = glyph_dsc,\n")
         f.write("    .cmaps = cmaps,\n")
         f.write("    .kern_dsc = NULL, .kern_scale = 0,\n")
-        f.write("    .cmap_num = 1, .bpp = %d, .kern_classes = 0, .bitmap_format = 0\n" % bpp)
+        f.write(f"    .cmap_num = 1, .bpp = {bpp}, .kern_classes = 0, .bitmap_format = 0\n")
         f.write("};\n\n")
+
         safe_name = base_name.replace(" ", "_").replace("-", "_").lower()
         f.write(f"const lv_font_t {safe_name} = {{\n")
         f.write("    .get_glyph_dsc = lv_font_get_glyph_dsc_fmt_txt,\n")
@@ -272,10 +282,10 @@ def generate_lvgl_font_c_multi(font_inputs, out_font_name, size, bpp):
         f.write("    .base_line = 0,\n")
         f.write("    .dsc = &font_dsc\n")
         f.write("};\n\n")
+
         f.write(f"#endif /* {macro_name} */\n")
 
     return output_filename
-
 
 class LVGLFontConverterApp:
     def __init__(self, root):
@@ -326,7 +336,7 @@ class LVGLFontConverterApp:
         widget.bind_all("<Button-5>", lambda e: widget.yview_scroll(1, "units"))
 
     def add_font_block(self):
-        if len(self.file_blocks) > MAX_EXTRA_FONTS:
+        if len(self.file_blocks) >= MAX_EXTRA_FONTS:
             messagebox.showwarning("Limit reached", f"Maximum {MAX_EXTRA_FONTS} fonts supported total.")
             return
         block = FontFileEntry(self.scrollable_frame, len(self.file_blocks) + 1, self.remove_font_block)
@@ -362,8 +372,7 @@ class LVGLFontConverterApp:
         for b in self.file_blocks:
             data = b.get_font_data()
             b.set_status("")
-            if not data['font_path'] or not data['font_path'].lower().endswith('.ttf') or not os.path.isfile(
-                    data['font_path']):
+            if not data['font_path'] or not data['font_path'].lower().endswith('.ttf') or not os.path.isfile(data['font_path']):
                 b.set_status("File missing or not TTF.", error=True)
                 return
             try:
@@ -376,6 +385,22 @@ class LVGLFontConverterApp:
                 return
             font_inputs.append((data['font_path'], codepoints))
 
+        # CRITICAL: Check if at least one codepoint in each font's specified range is available in the font
+        check_errors = []
+        for idx, (font_path, codepoints) in enumerate(font_inputs):
+            has_any, present = font_has_any_codepoints(font_path, codepoints)
+            if not has_any:
+                if len(codepoints) == 1:
+                    desc = f"{codepoints[0]:#x}"
+                else:
+                    desc = f"{codepoints[0]:#x}-{codepoints[-1]:#x}"
+                name = os.path.basename(font_path)
+                check_errors.append(f'Font "{name}" doesn\'t have any characters included in range {desc}')
+        if check_errors:
+            for widget in [fb['widget']] + [b for b in self.file_blocks]:
+                widget.set_status(f"Error: {'; '.join(check_errors)}", error=True)
+            return
+
         for widget in [fb['widget']] + [b for b in self.file_blocks]:
             widget.set_status("Processing...")
 
@@ -387,7 +412,6 @@ class LVGLFontConverterApp:
         except Exception as ex:
             for widget in [fb['widget']] + [b for b in self.file_blocks]:
                 widget.set_status(f"Error: {ex}", error=True)
-
 
 if __name__ == "__main__":
     root = tk.Tk()
