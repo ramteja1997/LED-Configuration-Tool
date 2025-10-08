@@ -6,20 +6,34 @@ import threading
 import http.server
 import socketserver
 import webbrowser
-import psutil  # New dependency for process management
+import psutil  # process management
 
-# Configurations:
+# ==========================================================
+# CONFIGURATION — All paths are now absolute (portable build)
+# ==========================================================
 PYINSTALLER = "pyinstaller"
 ISCC_PATH = r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-APP_PY = "font2c_lvgl.py"
-APP_ISS = "Setup.iss"
-ICON_FILE = r"icons\LVGL_FontGen.ico"
-DIST_FOLDER = "dist"
-OUTPUT_FOLDER = "Output"
-INSTALLER_FILENAME = "LVGLFontGenerator_Installer.exe"
-INSTALL_DIR = os.path.join(os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)"), "LVGLFontGenerator")
-PORT = 8000  # HTTP server port
 
+# Get absolute base directory where this script is located
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Define all important paths relative to BASE_DIR
+APP_PY = os.path.join(BASE_DIR, "font2c_lvgl.py")
+APP_ISS = os.path.join(BASE_DIR, "Setup.iss")
+ICON_FILE = os.path.join(BASE_DIR, "icons", "LVGL_FontGen.ico")
+DIST_FOLDER = os.path.join(BASE_DIR, "dist")
+OUTPUT_FOLDER = os.path.join(BASE_DIR, "Output")
+
+INSTALLER_FILENAME = "LVGLFontGenerator_Installer.exe"
+INSTALL_DIR = os.path.join(
+    os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)"),
+    "LVGLFontGenerator"
+)
+PORT = 8000
+
+# ==========================================================
+# Utility functions
+# ==========================================================
 def print_step(step_num, description):
     print("\n" + "*" * 60)
     print(f"Step {step_num}: {description}")
@@ -66,6 +80,7 @@ def build_exe(icon_path):
         "--clean",
     ]
     subprocess.run(cmd, check=True)
+    exe_path = os.path.join(DIST_FOLDER, exe_name)
     if not os.path.exists(exe_path):
         print(f"Error: EXE {exe_path} not created!")
         return None
@@ -73,7 +88,7 @@ def build_exe(icon_path):
     return exe_path
 
 def kill_font2c_processes():
-    print_step("5", "Checking for running LVGL Font Generator processes to terminate...")
+    print_step(5, "Checking for running LVGL Font Generator processes to terminate...")
     killed_any = False
     for proc in psutil.process_iter(['name', 'exe']):
         try:
@@ -120,7 +135,8 @@ def delete_existing_installer():
 
 def run_installer_compiler():
     print_step(8, f"Running Inno Setup Compiler on {APP_ISS}")
-    subprocess.run([ISCC_PATH, APP_ISS], check=True)
+    iss_dir = os.path.dirname(APP_ISS)
+    subprocess.run([ISCC_PATH, APP_ISS], check=True, cwd=iss_dir)
     print("Installer created successfully.")
 
 class CustomHandler(http.server.SimpleHTTPRequestHandler):
@@ -150,19 +166,23 @@ def serve_installer(folder=OUTPUT_FOLDER):
     url = f"http://localhost:{PORT}/"
     print(f"Serving folder '{folder}' at {url}")
     webbrowser.open(url)
+
     def serve():
         httpd.serve_forever()
     thread = threading.Thread(target=serve, daemon=True)
     thread.start()
     return httpd
 
+# ==========================================================
+# MAIN EXECUTION
+# ==========================================================
 def main():
     print("\n" + "#" * 60)
     print("===== Starting Automated Build and Installer Script =====")
     print("#" * 60 + "\n")
 
     if not os.path.exists(APP_PY):
-        print(f"Error: Python script {APP_PY} not found!")
+        print(f"Error: Python script not found: {APP_PY}")
         sys.exit(1)
     if not os.path.exists(ICON_FILE):
         print(f"Error: Icon file not found: {ICON_FILE}")
@@ -174,6 +194,11 @@ def main():
     exe_path = build_exe(ICON_FILE)
     if exe_path is None:
         print("Build failed. Aborting.")
+        sys.exit(1)
+
+    dist_exe = os.path.join(DIST_FOLDER, "font2c_lvgl.exe")
+    if not os.path.exists(dist_exe):
+        print(f"Error: {dist_exe} not found. Build may have failed.")
         sys.exit(1)
 
     kill_font2c_processes()

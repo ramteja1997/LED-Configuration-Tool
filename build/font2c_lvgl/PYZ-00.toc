@@ -1,5 +1,5 @@
-('D:\\Digicomm Daily ACT\\LED Zone '
- 'Digicomm\\LED-Font-Converter\\build\\font2c_lvgl\\PYZ-00.pyz',
+('D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+ 'Converter\\LED-Font-Converter\\build\\font2c_lvgl\\PYZ-00.pyz',
  [('__future__',
    'C:\\Users\\ramte\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\__future__.py',
    'PYMODULE'),
@@ -166,136 +166,136 @@
    'C:\\Users\\ramte\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\fractions.py',
    'PYMODULE'),
   ('freetype',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\__init__.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\__init__.py',
    'PYMODULE'),
   ('freetype.ft_enums',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\__init__.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\__init__.py',
    'PYMODULE'),
   ('freetype.ft_enums.ft_color_root_transform',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_color_root_transform.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_color_root_transform.py',
    'PYMODULE'),
   ('freetype.ft_enums.ft_curve_tags',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_curve_tags.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_curve_tags.py',
    'PYMODULE'),
   ('freetype.ft_enums.ft_encodings',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_encodings.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_encodings.py',
    'PYMODULE'),
   ('freetype.ft_enums.ft_face_flags',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_face_flags.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_face_flags.py',
    'PYMODULE'),
   ('freetype.ft_enums.ft_fstypes',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_fstypes.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_fstypes.py',
    'PYMODULE'),
   ('freetype.ft_enums.ft_glyph_bbox_modes',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_glyph_bbox_modes.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_glyph_bbox_modes.py',
    'PYMODULE'),
   ('freetype.ft_enums.ft_glyph_formats',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_glyph_formats.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_glyph_formats.py',
    'PYMODULE'),
   ('freetype.ft_enums.ft_kerning_modes',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_kerning_modes.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_kerning_modes.py',
    'PYMODULE'),
   ('freetype.ft_enums.ft_lcd_filters',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_lcd_filters.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_lcd_filters.py',
    'PYMODULE'),
   ('freetype.ft_enums.ft_load_flags',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_load_flags.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_load_flags.py',
    'PYMODULE'),
   ('freetype.ft_enums.ft_load_targets',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_load_targets.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_load_targets.py',
    'PYMODULE'),
   ('freetype.ft_enums.ft_open_modes',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_open_modes.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_open_modes.py',
    'PYMODULE'),
   ('freetype.ft_enums.ft_outline_flags',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_outline_flags.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_outline_flags.py',
    'PYMODULE'),
   ('freetype.ft_enums.ft_pixel_modes',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_pixel_modes.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_pixel_modes.py',
    'PYMODULE'),
   ('freetype.ft_enums.ft_render_modes',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_render_modes.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_render_modes.py',
    'PYMODULE'),
   ('freetype.ft_enums.ft_stroker_borders',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_stroker_borders.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_stroker_borders.py',
    'PYMODULE'),
   ('freetype.ft_enums.ft_stroker_linecaps',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_stroker_linecaps.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_stroker_linecaps.py',
    'PYMODULE'),
   ('freetype.ft_enums.ft_stroker_linejoins',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_stroker_linejoins.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_stroker_linejoins.py',
    'PYMODULE'),
   ('freetype.ft_enums.ft_style_flags',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_style_flags.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\ft_style_flags.py',
    'PYMODULE'),
   ('freetype.ft_enums.tt_adobe_ids',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\tt_adobe_ids.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\tt_adobe_ids.py',
    'PYMODULE'),
   ('freetype.ft_enums.tt_apple_ids',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\tt_apple_ids.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\tt_apple_ids.py',
    'PYMODULE'),
   ('freetype.ft_enums.tt_mac_ids',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\tt_mac_ids.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\tt_mac_ids.py',
    'PYMODULE'),
   ('freetype.ft_enums.tt_mac_langids',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\tt_mac_langids.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\tt_mac_langids.py',
    'PYMODULE'),
   ('freetype.ft_enums.tt_ms_ids',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\tt_ms_ids.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\tt_ms_ids.py',
    'PYMODULE'),
   ('freetype.ft_enums.tt_ms_langids',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\tt_ms_langids.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\tt_ms_langids.py',
    'PYMODULE'),
   ('freetype.ft_enums.tt_name_ids',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\tt_name_ids.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\tt_name_ids.py',
    'PYMODULE'),
   ('freetype.ft_enums.tt_platforms',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\tt_platforms.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_enums\\tt_platforms.py',
    'PYMODULE'),
   ('freetype.ft_errors',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_errors.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_errors.py',
    'PYMODULE'),
   ('freetype.ft_structs',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_structs.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_structs.py',
    'PYMODULE'),
   ('freetype.ft_types',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\ft_types.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\ft_types.py',
    'PYMODULE'),
   ('freetype.raw',
-   'D:\\Digicomm Daily ACT\\LED Zone '
-   'Digicomm\\.venv\\Lib\\site-packages\\freetype\\raw.py',
+   'D:\\Digicomm Daily ACT\\LED Zone Digicomm\\Font '
+   'Converter\\LED-Font-Converter\\.venv\\Lib\\site-packages\\freetype\\raw.py',
    'PYMODULE'),
   ('getopt',
    'C:\\Users\\ramte\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\getopt.py',

@@ -7,12 +7,18 @@ OutputBaseFilename=LVGLFontGenerator_Installer
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-SetupIconFile="D:\Digicomm Daily ACT\LED Zone Digicomm\LVGL_FontGen.ico"
+
+; 👇 Use a relative path to the icon folder — works no matter where repo is cloned
+SetupIconFile="icons\LVGL_FontGen.ico"
+
+; Output installer to the 'Output' folder relative to this script
+OutputDir="Output"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
+; 👇 Source exe relative to project folder, inside 'dist' after build
 Source: "dist\font2c_lvgl.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
