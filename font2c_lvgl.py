@@ -1,10 +1,18 @@
+import subprocess
+import sys
+
+# Auto-install freetype-py if not installed
+try:
+    import freetype
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "freetype-py"])
+    import freetype
+
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import os
 import webbrowser
-import freetype
 
-# Allows maximum ranges 5 and ttf file upload 10
 MAX_EXTRA_FONTS = 10
 MAX_RANGES_PER_FONT = 5
 
@@ -56,32 +64,32 @@ class FontFileEntry:
         self.master = master
         self.index = index
         self.remove_callback = remove_callback
-        self.frame = tk.Frame(master, relief=tk.GROOVE, bd=2, padx=8, pady=8)
-        self.frame.pack(fill="x", padx=8, pady=8)
+        self.frame = tk.Frame(master, relief=tk.GROOVE, bd=2, padx=16, pady=16, width=850, height=280, bg="#f9f9f9")
+        self.frame.pack_propagate(False) # Do not auto-shrink
 
-        row1 = tk.Frame(self.frame)
-        row1.pack(fill="x", pady=(0,3))
-        tk.Label(row1, text=f"Font file {index + 1}:", width=12).pack(side="left")
+        row1 = tk.Frame(self.frame, bg="#f9f9f9")
+        row1.pack(fill="x", pady=(0, 3))
+        tk.Label(row1, text=f"TTF file {index + 1}:", width=12, bg="#f9f9f9").pack(side="left")
         self.path_var = tk.StringVar()
         self.path_entry = tk.Entry(row1, textvariable=self.path_var, width=45)
         self.path_entry.pack(side="left", padx=5)
         browse_btn = tk.Button(row1, text="Browse", command=self.browse_file)
         browse_btn.pack(side="left")
 
-        row2 = tk.Frame(self.frame)
-        row2.pack(fill="x", pady=(0,2))
-        tk.Label(row2, text="Range (max 5, comma/line-separated):").pack(anchor="w")
-        self.range_text = tk.Text(row2, height=3, width=70)
+        row2 = tk.Frame(self.frame, bg="#f9f9f9")
+        row2.pack(fill="x", pady=(0, 2))
+        tk.Label(row2, text="Range (max 5, comma/line-separated):", bg="#f9f9f9").pack(anchor="w")
+        self.range_text = tk.Text(row2, height=3, width=80)
         self.range_text.insert("1.0", "0x20-0x7F")
-        self.range_text.pack(fill="both", pady=(0,2))
+        self.range_text.pack(fill="both", pady=(0, 2))
 
-        link = tk.Label(self.frame, text="Unicode Character Ranges", fg="blue", cursor="hand2")
+        link = tk.Label(self.frame, text="Unicode Character Ranges", fg="blue", cursor="hand2", bg="#f9f9f9")
         link.pack(anchor="w", pady=1)
         link.bind("<Button-1>", lambda e: webbrowser.open_new("https://jrgraphix.net/research/unicode.php"))
 
         if remove_callback:
             self.remove_btn = tk.Button(self.frame, text="🗑️ Remove", command=self.remove_self)
-            self.remove_btn.pack(fill="x", pady=(2,8))
+            self.remove_btn.pack(fill="x", pady=(2, 8))
 
         self.status_text = StatusText(self.frame)
         self.status_text.pack(fill="x", pady=2)
@@ -298,37 +306,54 @@ def check_block_ranges(block):
 class LVGLFontConverterApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("LVGL Multi Font Converter")
-        self.root.geometry("1000x750")
-        container = tk.Frame(root)
-        container.pack(fill="both", expand=True)
+        self.root.title("Centum Configuration Tool")
+        self.root.geometry("1100x800")
+        self.root.update_idletasks()
 
-        # font name, size, bpp at top globally
+        # Main container, placed center of the window
+        container = tk.Frame(self.root, width=1000, height=800)
+        container.pack_propagate(False)
+        container.place(relx=0.5, rely=0.5, anchor="center")
+
+        # Title block at top
+        title_label = tk.Label(container, text="Centum Configuration Tool", font=("Segoe UI", 32, "bold"))
+        title_label.pack(pady=(18, 6))
+
+        subtitle_label = tk.Label(container, text="Convert TTF and WOFF fonts to C array.", font=("Segoe UI", 18, "bold"))
+        subtitle_label.pack(pady=(0, 7))
+
+        desc_text = ("With this free online font converter tool you can create C array from any TTF or WOFF. "
+                     "You can select ranges of Unicode characters and specify the bpp (bit-per-pixel).")
+        desc_label = tk.Label(container, text=desc_text, font=("Segoe UI", 12), wraplength=830, justify="center")
+        desc_label.pack(pady=(0, 30))
+
+        # Entry/settings frame
         settings_fr = tk.Frame(container, pady=5, padx=5)
-        settings_fr.pack(fill="x", padx=5, pady=5)
+        settings_fr.pack()
 
-        tk.Label(settings_fr, text="Font Name:", width=12).pack(side="left")
+        tk.Label(settings_fr, text="Name:", width=12, font=("Segoe UI", 10)).pack(side="left")
         self.font_name_var = tk.StringVar()
-        tk.Entry(settings_fr, textvariable=self.font_name_var, width=20).pack(side="left", padx=5)
-        tk.Label(settings_fr, text="Font Size (px):", width=13).pack(side="left", padx=(15,0))
+        tk.Entry(settings_fr, textvariable=self.font_name_var, width=20, font=("Segoe UI", 10)).pack(side="left", padx=5)
+        tk.Label(settings_fr, text="Font Size (px):", width=13, font=("Segoe UI", 10)).pack(side="left", padx=(15, 0))
         self.font_size_var = tk.IntVar(value=16)
-        tk.Spinbox(settings_fr, from_=8, to=72, textvariable=self.font_size_var, width=5).pack(side="left", padx=3)
-        tk.Label(settings_fr, text="Bpp:", width=6).pack(side="left", padx=(15,0))
+        tk.Spinbox(settings_fr, from_=8, to=72, textvariable=self.font_size_var, width=5, font=("Segoe UI", 10)).pack(side="left", padx=3)
+        tk.Label(settings_fr, text="Bpp:", width=6, font=("Segoe UI", 10)).pack(side="left", padx=(15, 0))
         self.bpp_var = tk.StringVar(value='1')
-        ttk.Combobox(settings_fr, textvariable=self.bpp_var, values=['1', '2', '3', '4', '8'], width=3, state='readonly').pack(
-            side="left", padx=3)
+        ttk.Combobox(settings_fr, textvariable=self.bpp_var, values=['1', '2', '3', '4', '8'], width=3, state='readonly', font=("Segoe UI", 10)).pack(
+            side="left", padx=3
+        )
 
-        # Scrollable block panel
+        # Scrollable block panel - vertical scrolling!
         canvas_fr = tk.Frame(container)
-        canvas_fr.pack(fill="both", expand=True)
-        self.canvas = tk.Canvas(canvas_fr)
+        canvas_fr.pack(expand=True, pady=32)
+        self.canvas = tk.Canvas(canvas_fr, width=920, height=350)
         v_scrollbar = tk.Scrollbar(canvas_fr, orient="vertical", command=self.canvas.yview)
-        self.scrollable_frame = tk.Frame(self.canvas)
+        self.scrollable_frame = tk.Frame(self.canvas, width=920)
         self.scrollable_frame.bind(
             "<Configure>",
             lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         )
-        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.canvas.create_window((450, 0), window=self.scrollable_frame, anchor="n")
         self.canvas.configure(yscrollcommand=v_scrollbar.set)
         self.canvas.pack(side="left", fill="both", expand=True)
         v_scrollbar.pack(side="right", fill="y")
@@ -344,7 +369,7 @@ class LVGLFontConverterApp:
         self.submit_btn = tk.Button(
             self.buttons_frame, text="Submit", command=self.submit_all, bg='black', fg='white'
         )
-        self.submit_btn.pack(side="top", pady=5, ipadx=20)
+        self.submit_btn.pack(side="top", pady=5, ipadx=30)
 
         self._bind_mousewheel(self.canvas)
 
@@ -358,7 +383,7 @@ class LVGLFontConverterApp:
             messagebox.showwarning("Limit reached", f"Maximum {MAX_EXTRA_FONTS} fonts supported total.")
             return
         block = FontFileEntry(self.scrollable_frame, len(self.file_blocks), self.remove_font_block)
-        block.frame.pack(fill="x", padx=5, pady=8)
+        block.frame.pack(fill="x", pady=22)
         self.file_blocks.append(block)
 
     def remove_font_block(self, block):
