@@ -13,6 +13,7 @@ import importlib
 # CONFIGURATION — All paths are now absolute (portable build)
 # ==========================================================
 PYINSTALLER = "pyinstaller"
+
 ISCC_PATH = r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 
 # Get absolute base directory where this script is located
