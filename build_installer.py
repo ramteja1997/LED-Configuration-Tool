@@ -6,7 +6,8 @@ import threading
 import http.server
 import socketserver
 import webbrowser
-import psutil  # process management
+import psutil
+import importlib
 
 # ==========================================================
 # CONFIGURATION — All paths are now absolute (portable build)
@@ -30,6 +31,27 @@ INSTALL_DIR = os.path.join(
     "LVGLFontGenerator"
 )
 PORT = 8000
+
+# ==========================================================
+# Dependency check and install
+# ==========================================================
+def check_and_install_modules(required_modules):
+    for module_name, install_name in required_modules.items():
+        try:
+            importlib.import_module(module_name)
+            print(f"Module '{module_name}' is already installed.")
+        except ImportError:
+            print(f"Module '{module_name}' not found. Installing...")
+            subprocess.run([sys.executable, "-m", "pip", "install", install_name], check=True)
+            print(f"Module '{module_name}' installed successfully.")
+
+# List required modules here (module_name: pip_package_name)
+
+required_modules = {
+    "psutil": "psutil",
+    "freetype": "freetype-py",
+    # No need to include 'tkinter', 'os', 'sys', 'webbrowser' since they're standard
+}
 
 # ==========================================================
 # Utility functions
@@ -187,6 +209,9 @@ def main():
     if not os.path.exists(ICON_FILE):
         print(f"Error: Icon file not found: {ICON_FILE}")
         sys.exit(1)
+
+    # Check and install required Python modules before proceeding
+    check_and_install_modules(required_modules)
 
     check_and_install_pyinstaller()
     check_iscc()
