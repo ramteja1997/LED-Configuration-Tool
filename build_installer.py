@@ -175,6 +175,25 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         else:
             super().do_GET()
 
+# def serve_installer(folder=OUTPUT_FOLDER):
+#     if not os.path.exists(folder):
+#         print(f"Error: Directory to serve does not exist: {folder}")
+#         sys.exit(1)
+#     os.chdir(folder)
+#     handler = CustomHandler
+#     httpd = socketserver.TCPServer(("", PORT), handler)
+#     url = f"http://localhost:{PORT}/"
+#     print(f"Serving folder '{folder}' at {url}")
+#     webbrowser.open(url)
+
+#     def serve():
+#         httpd.serve_forever()
+#     thread = threading.Thread(target=serve, daemon=True)
+#     thread.start()
+#     return httpd
+
+PORT = 0  # Let OS pick a free port
+
 def serve_installer(folder=OUTPUT_FOLDER):
     if not os.path.exists(folder):
         print(f"Error: Directory to serve does not exist: {folder}")
@@ -182,7 +201,8 @@ def serve_installer(folder=OUTPUT_FOLDER):
     os.chdir(folder)
     handler = CustomHandler
     httpd = socketserver.TCPServer(("", PORT), handler)
-    url = f"http://localhost:{PORT}/"
+    actual_port = httpd.server_address[1]  # actual port assigned by OS
+    url = f"http://localhost:{actual_port}/"
     print(f"Serving folder '{folder}' at {url}")
     webbrowser.open(url)
 
@@ -191,6 +211,7 @@ def serve_installer(folder=OUTPUT_FOLDER):
     thread = threading.Thread(target=serve, daemon=True)
     thread.start()
     return httpd
+
 
 # ==========================================================
 # MAIN EXECUTION
