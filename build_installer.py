@@ -12,7 +12,7 @@ import importlib
 # ==========================================================
 # CONFIGURATION — All paths are now absolute (portable build)
 # ==========================================================
-PYINSTALLER = "pyinstaller"
+PYINSTALLER = [sys.executable, "-m", "PyInstaller"]
 
 ISCC_PATH = r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 
@@ -46,12 +46,9 @@ def check_and_install_modules(required_modules):
             subprocess.run([sys.executable, "-m", "pip", "install", install_name], check=True)
             print(f"Module '{module_name}' installed successfully.")
 
-# List required modules here (module_name: pip_package_name)
-
 required_modules = {
     "psutil": "psutil",
     "freetype": "freetype-py",
-    # No need to include 'tkinter', 'os', 'sys', 'webbrowser' since they're standard
 }
 
 # ==========================================================
@@ -65,7 +62,7 @@ def print_step(step_num, description):
 def check_and_install_pyinstaller():
     print_step(1, "Checking if PyInstaller is installed...")
     try:
-        subprocess.run([PYINSTALLER, "--version"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(PYINSTALLER + ["--version"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         print("PyInstaller is already installed.")
     except (subprocess.CalledProcessError, FileNotFoundError):
         print("PyInstaller not found. Installing with pip...")
@@ -93,8 +90,7 @@ def build_exe(icon_path):
     exe_name = os.path.basename(APP_PY).replace(".py", ".exe")
     exe_path = delete_existing_exe(exe_name)
     print_step(4, f"Building executable: {exe_name}")
-    cmd = [
-        PYINSTALLER,
+    cmd = PYINSTALLER + [
         "--onefile",
         "--windowed",
         f"--icon={icon_path}",
