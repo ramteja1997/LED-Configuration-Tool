@@ -1,31 +1,61 @@
 import subprocess
-import sys
-
-# Auto-install freetype-py if not installed
-try:
-    import freetype
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "freetype-py"])
-    import freetype
-
+import shutil
+import os
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
-import os
 import webbrowser
 
 MAX_EXTRA_FONTS = 10
 MAX_RANGES_PER_FONT = 5
 
-def pack_4bpp(buffer, width, rows):
-    packed = []
-    for y in range(rows):
-        for x in range(0, width, 2):
-            p1 = buffer[y * width + x]
-            p2 = buffer[y * width + x + 1] if (x + 1) < width else 0
-            n1 = int(round(p1 / 17.0))
-            n2 = int(round(p2 / 17.0))
-            packed.append((n1 << 4) | n2)
-    return packed
+def normalize_path(path):
+    return os.path.abspath(path).replace("\\", "/")
+
+def call_lv_font_conv(ttf_files, out_c_file, fontname, size, bpp, ranges_list):
+    exe = shutil.which('lv_font_conv') or shutil.which('lv_font_conv.cmd')
+    if exe is None:
+        msg = (
+            "lv_font_conv not found in your PATH.\n"
+            "Run 'npm config get prefix' in terminal and add that folder to your Windows user PATH.\n"
+            "Restart your computer after updating PATH.\n"
+            f"Current PATH:\n{os.environ['PATH']}"
+        )
+        messagebox.showerror("Missing tool", msg)
+        raise FileNotFoundError("lv_font_conv not found in PATH")
+
+    cmd = [exe]
+    for i, ttf_file in enumerate(ttf_files):
+        norm_font = normalize_path(ttf_file)
+        cmd += ["--font", norm_font]
+        for rng in ranges_list[i].replace('\n', ',').split(','):
+            rng = rng.strip()
+            if rng:
+                cmd += ["--range", rng]
+
+    cmd += [
+        "--size", str(size),
+        "--bpp", str(bpp),
+        "--format", "lvgl",
+        "--output", normalize_path(out_c_file),
+        "--lv-font-name", fontname,
+        "--no-compress"  # Keep only supported flags
+    ]
+
+    print("Running:", " ".join(cmd))
+    result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    if result.returncode != 0:
+        print("STDOUT:", result.stdout)
+        print("STDERR:", result.stderr)
+        messagebox.showerror(
+            "Font Converter Error",
+            f"Failed to generate .c file!\n"
+            f"Return code: {result.returncode}\n"
+            f"Command:\n{' '.join(cmd)}\n\n"
+            f"STDOUT:\n{result.stdout}\n"
+            f"STDERR:\n{result.stderr}\n"
+            "Try running this command in a terminal for details."
+        )
+        raise Exception("lv_font_conv failed")
 
 def parse_individual_ranges(range_text):
     items = [i.strip() for i in range_text.replace('\n', ',').split(',') if i.strip()]
@@ -65,8 +95,7 @@ class FontFileEntry:
         self.index = index
         self.remove_callback = remove_callback
         self.frame = tk.Frame(master, relief=tk.GROOVE, bd=2, padx=16, pady=16, width=850, height=280, bg="#f9f9f9")
-        self.frame.pack_propagate(False) # Do not auto-shrink
-
+        self.frame.pack_propagate(False)
         row1 = tk.Frame(self.frame, bg="#f9f9f9")
         row1.pack(fill="x", pady=(0, 3))
         tk.Label(row1, text=f"TTF file {index + 1}:", width=12, bg="#f9f9f9").pack(side="left")
@@ -75,25 +104,20 @@ class FontFileEntry:
         self.path_entry.pack(side="left", padx=5)
         browse_btn = tk.Button(row1, text="Browse", command=self.browse_file)
         browse_btn.pack(side="left")
-
         row2 = tk.Frame(self.frame, bg="#f9f9f9")
         row2.pack(fill="x", pady=(0, 2))
         tk.Label(row2, text="Range (max 5, comma/line-separated):", bg="#f9f9f9").pack(anchor="w")
         self.range_text = tk.Text(row2, height=3, width=80)
         self.range_text.insert("1.0", "0x20-0x7F")
         self.range_text.pack(fill="both", pady=(0, 2))
-
         link = tk.Label(self.frame, text="Unicode Character Ranges", fg="blue", cursor="hand2", bg="#f9f9f9")
         link.pack(anchor="w", pady=1)
         link.bind("<Button-1>", lambda e: webbrowser.open_new("https://jrgraphix.net/research/unicode.php"))
-
         if remove_callback:
             self.remove_btn = tk.Button(self.frame, text="🗑️ Remove", command=self.remove_self)
             self.remove_btn.pack(fill="x", pady=(2, 8))
-
         self.status_text = StatusText(self.frame)
         self.status_text.pack(fill="x", pady=2)
-
     def browse_file(self):
         filename = filedialog.askopenfilename(filetypes=[("TTF Font Files", "*.ttf")])
         if filename:
@@ -101,12 +125,10 @@ class FontFileEntry:
                 messagebox.showerror("Invalid File", "TTF file type is expected.")
                 return
             self.path_var.set(filename)
-
     def remove_self(self):
         if self.remove_callback:
             self.frame.destroy()
             self.remove_callback(self)
-
     def get_font_data(self):
         return {
             "font_path": self.path_var.get().strip(),
@@ -115,135 +137,6 @@ class FontFileEntry:
         }
     def set_status(self, messages):
         self.status_text.set_status_messages(messages)
-
-def generate_lvgl_font_c_multi(font_inputs, out_font_name, size, bpp):
-    first_font_path = font_inputs[0][0]
-    output_folder = os.path.dirname(first_font_path)
-    base_name = out_font_name
-    output_filename = os.path.join(output_folder, f"{base_name}.c")
-    counter = 1
-    while os.path.exists(output_filename):
-        output_filename = os.path.join(output_folder, f"{base_name}({counter}).c")
-        counter += 1
-
-    glyph_entries = []
-    for font_path, codepoints in font_inputs:
-        face = freetype.Face(font_path)
-        face.set_pixel_sizes(0, size)
-        for code in codepoints:
-            try:
-                face.load_char(chr(code))
-                glyph_entries.append((font_path, face, code))
-            except Exception:
-                pass
-
-    if not glyph_entries:
-        ranges = []
-        for font_path, codepoints in font_inputs:
-            if len(codepoints) == 1:
-                ranges.append(f"{codepoints[0]:#x}")
-            else:
-                ranges.append(f"{codepoints[0]:#x}-{codepoints[-1]:#x}")
-        raise Exception(f"No characters found in supplied font(s) for range: {', '.join(ranges)}")
-
-    glyph_descs = []
-    bitmap_offset = 0
-    unicode_list = []
-
-    with open(output_filename, "w", encoding="utf-8") as f:
-        f.write("/*******************************************************************************\n")
-        f.write(f"* Size: {size} px\n* Bpp: {bpp}\n")
-        f.write(f"* Opts: --multi-font\n")
-        f.write(f"*******************************************************************************/\n\n")
-
-        macro_name = base_name.upper().replace(" ", "_").replace("-", "_")
-        f.write("#ifdef LV_LVGL_H_INCLUDE_SIMPLE\n#include \"lvgl.h\"\n#else\n#include \"lvgl/lvgl.h\"\n#endif\n\n")
-        f.write(f"#ifndef {macro_name}\n#define {macro_name} 1\n#endif\n\n")
-        f.write("/*-----------------\n* BITMAPS\n*----------------*/\n")
-        f.write("static LV_ATTRIBUTE_LARGE_CONST const uint8_t glyph_bitmap[] = {\n")
-
-        for font_path, face, code in glyph_entries:
-            try:
-                ft_flags = freetype.FT_LOAD_RENDER | (
-                    freetype.FT_LOAD_TARGET_MONO if bpp == 1 else freetype.FT_LOAD_TARGET_NORMAL)
-                face.load_char(chr(code), ft_flags)
-            except Exception:
-                glyph_descs.append((bitmap_offset, 0, 0, 0, 0, 0))
-                unicode_list.append(code)
-                continue
-
-            bmp = face.glyph.bitmap
-            width, rows = bmp.width, bmp.rows
-            buffer = bmp.buffer
-            ch = chr(code)
-            f.write(f"\n/* U+{code:04X} \"{ch}\" ({os.path.basename(font_path)}) */\n\n")
-
-            if bpp == 1:
-                row_bytes = (width + 7) // 8 if width != 0 else 0
-                for y in range(rows):
-                    f.write("    ")
-                    for b in range(row_bytes):
-                        idx = y * row_bytes + b
-                        f.write(f"0x{buffer[idx]:02X}" if idx < len(buffer) else "0x00")
-                        if not (y == rows - 1 and b == row_bytes - 1):
-                            f.write(", ")
-                    f.write(",\n")
-                bitmap_offset += rows * row_bytes
-            else:
-                packed = pack_4bpp(buffer, width, rows)
-                for i in range(0, len(packed), 12):
-                    chunk = ", ".join(f"0x{b:02X}" for b in packed[i:i + 12])
-                    f.write(f"    {chunk},\n")
-                bitmap_offset += len(packed)
-
-            glyph_descs.append(
-                (bitmap_offset, width, rows, face.glyph.advance.x // 64, face.glyph.bitmap_left, face.glyph.bitmap_top))
-            unicode_list.append(code)
-        f.write("};\n\n")
-
-        f.write("static const lv_font_fmt_txt_glyph_dsc_t glyph_dsc[] = {\n")
-        offset = 0
-        for desc in glyph_descs:
-            f.write(f"    {{ .bitmap_index = {offset}, .adv_w = {desc[3]}, .box_w = {desc[1]},"
-                    f" .box_h = {desc[2]}, .ofs_x = {desc[4]}, .ofs_y = {desc[5]} }},\n")
-            if desc[1] > 0 and desc[2] > 0:
-                cells = ((desc[1] + 7) // 8 if bpp == 1 else (desc[1] + 1) // 2) * desc[2]
-                offset += cells
-        f.write("};\n\n")
-
-        f.write("static const uint16_t unicode_list_0[] = {\n")
-        for code in unicode_list:
-            f.write(f"    0x{code:04X},\n")
-        f.write("};\n\n")
-
-        f.write("static const lv_font_fmt_txt_cmap_t cmaps[] = {\n")
-        f.write("    {\n")
-        f.write(f"        .range_start = 0x{unicode_list[0]:04X}, .range_length = {len(unicode_list)},"
-                f" .glyph_id_start = 1,\n")
-        f.write(f"        .unicode_list = unicode_list_0, .glyph_id_ofs_list = NULL,"
-                f" .list_length = {len(unicode_list)}, .type = LV_FONT_FMT_TXT_CMAP_FORMAT0_TINY\n")
-        f.write("    }\n};\n\n")
-
-        f.write("static lv_font_fmt_txt_desc_t font_dsc = {\n")
-        f.write("    .glyph_bitmap = glyph_bitmap,\n")
-        f.write("    .glyph_dsc = glyph_dsc,\n")
-        f.write("    .cmaps = cmaps,\n")
-        f.write("    .kern_dsc = NULL, .kern_scale = 0,\n")
-        f.write(f"    .cmap_num = 1, .bpp = {bpp}, .kern_classes = 0, .bitmap_format = 0\n")
-        f.write("};\n\n")
-
-        safe_name = base_name.replace(" ", "_").replace("-", "_").lower()
-        f.write(f"const lv_font_t {safe_name} = {{\n")
-        f.write("    .get_glyph_dsc = lv_font_get_glyph_dsc_fmt_txt,\n")
-        f.write("    .get_glyph_bitmap = lv_font_get_bitmap_fmt_txt,\n")
-        f.write(f"    .line_height = {size},\n")
-        f.write("    .base_line = 0,\n")
-        f.write("    .dsc = &font_dsc\n")
-        f.write("};\n\n")
-
-        f.write(f"#endif /* {macro_name} */\n")
-
-    return output_filename
 
 def check_block_ranges(block):
     data = block.get_font_data()
@@ -266,42 +159,24 @@ def check_block_ranges(block):
         messages.append(("Unicode range is empty.", False))
         block.set_status(messages)
         return False
-    font_path = data['font_path']
-    all_supported = True
-    for (start, end) in ranges:
-        face = freetype.Face(font_path)
-        unsupported_chars = []
-        for code in range(start, end + 1):
-            if face.get_char_index(code) == 0:
-                unsupported_chars.append(code)
-        if unsupported_chars:
-            all_supported = False
-            def format_range(codes):
-                result = []
-                sorted_codes = sorted(codes)
-                s = e = sorted_codes[0]
-                for c in sorted_codes[1:]:
-                    if c == e + 1:
-                        e = c
-                    else:
-                        if s == e:
-                            result.append(f"U+{s:04X}")
-                        else:
-                            result.append(f"U+{s:04X}-U+{e:04X}")
-                        s = e = c
-                if s == e:
-                    result.append(f"U+{s:04X}")
-                else:
-                    result.append(f"U+{s:04X}-U+{e:04X}")
-                return ", ".join(result)
-            msg = (
-                f"Range 0x{start:04X}-0x{end:04X} unsupported, missing characters: {format_range(unsupported_chars)}"
-            )
-            messages.append((msg, False))
-        else:
-            messages.append((f"Range 0x{start:04X}-0x{end:04X} fully supported.", True))
+    try:
+        import freetype
+        face = freetype.Face(data['font_path'])
+        for (start, end) in ranges:
+            unsupported_chars = []
+            for code in range(start, end + 1):
+                if face.get_char_index(code) == 0:
+                    unsupported_chars.append(code)
+            if unsupported_chars:
+                messages.append((f"Range 0x{start:04X}-0x{end:04X} missing: {', '.join(hex(u) for u in unsupported_chars)}", False))
+            else:
+                messages.append((f"Range 0x{start:04X}-0x{end:04X} fully supported.", True))
+    except Exception as e:
+        messages.append((f"Font check failed: {e}", False))
+        block.set_status(messages)
+        return False
     block.set_status(messages)
-    return all_supported
+    return all(s for m, s in messages)
 
 class LVGLFontConverterApp:
     def __init__(self, root):
@@ -309,28 +184,19 @@ class LVGLFontConverterApp:
         self.root.title("Centum Configuration Tool")
         self.root.geometry("1100x800")
         self.root.update_idletasks()
-
-        # Main container, placed center of the window
         container = tk.Frame(self.root, width=1000, height=800)
         container.pack_propagate(False)
         container.place(relx=0.5, rely=0.5, anchor="center")
-
-        # Title block at top
         title_label = tk.Label(container, text="Centum Configuration Tool", font=("Segoe UI", 32, "bold"))
         title_label.pack(pady=(18, 6))
-
         subtitle_label = tk.Label(container, text="Convert TTF and WOFF fonts to C array.", font=("Segoe UI", 18, "bold"))
         subtitle_label.pack(pady=(0, 7))
-
-        desc_text = ("With this free online font converter tool you can create C array from any TTF or WOFF. "
-                     "You can select ranges of Unicode characters and specify the bpp (bit-per-pixel).")
+        desc_text = ("With this free tool you can create a C array from any TTF or WOFF for LVGL. "
+                     "Select Unicode range and specify bpp (bit-per-pixel).")
         desc_label = tk.Label(container, text=desc_text, font=("Segoe UI", 12), wraplength=830, justify="center")
         desc_label.pack(pady=(0, 30))
-
-        # Entry/settings frame
         settings_fr = tk.Frame(container, pady=5, padx=5)
         settings_fr.pack()
-
         tk.Label(settings_fr, text="Name:", width=12, font=("Segoe UI", 10)).pack(side="left")
         self.font_name_var = tk.StringVar()
         tk.Entry(settings_fr, textvariable=self.font_name_var, width=20, font=("Segoe UI", 10)).pack(side="left", padx=5)
@@ -339,11 +205,7 @@ class LVGLFontConverterApp:
         tk.Spinbox(settings_fr, from_=8, to=72, textvariable=self.font_size_var, width=5, font=("Segoe UI", 10)).pack(side="left", padx=3)
         tk.Label(settings_fr, text="Bpp:", width=6, font=("Segoe UI", 10)).pack(side="left", padx=(15, 0))
         self.bpp_var = tk.StringVar(value='1')
-        ttk.Combobox(settings_fr, textvariable=self.bpp_var, values=['1', '2', '3', '4', '8'], width=3, state='readonly', font=("Segoe UI", 10)).pack(
-            side="left", padx=3
-        )
-
-        # Scrollable block panel - vertical scrolling!
+        ttk.Combobox(settings_fr, textvariable=self.bpp_var, values=['1', '2', '3', '4', '8'], width=3, state='readonly', font=("Segoe UI", 10)).pack(side="left", padx=3)
         canvas_fr = tk.Frame(container)
         canvas_fr.pack(expand=True, pady=32)
         self.canvas = tk.Canvas(canvas_fr, width=920, height=350)
@@ -359,7 +221,6 @@ class LVGLFontConverterApp:
         v_scrollbar.pack(side="right", fill="y")
         self.file_blocks = []
         self.add_font_block()
-
         self.buttons_frame = tk.Frame(container)
         self.buttons_frame.pack(fill="x", pady=10)
         self.add_font_btn = tk.Button(
@@ -370,7 +231,6 @@ class LVGLFontConverterApp:
             self.buttons_frame, text="Submit", command=self.submit_all, bg='black', fg='white'
         )
         self.submit_btn.pack(side="top", pady=5, ipadx=30)
-
         self._bind_mousewheel(self.canvas)
 
     def _bind_mousewheel(self, widget):
@@ -400,31 +260,35 @@ class LVGLFontConverterApp:
         if not bpp or not font_size:
             messagebox.showerror("Input Error", "Specify valid font size and bpp (top settings).")
             return
-
         ok_flags = []
         for block in self.file_blocks:
             ok_flags.append(check_block_ranges(block))
-
         if not all(ok_flags):
             return
-
-        font_inputs = []
+        ttf_files = []
+        ranges_list = []
         for block in self.file_blocks:
             data = block.get_font_data()
-            try:
-                ranges = parse_individual_ranges(data["range"])
-            except Exception:
-                continue  # skip block if parsing fails
-            codepoints = []
-            for (start, end) in ranges:
-                codepoints.extend(range(start, end + 1))
-            font_inputs.append((data["font_path"], codepoints))
-
+            ttf_files.append(data['font_path'])
+            ranges_list.append(data["range"])
+        output_folder = os.path.dirname(normalize_path(ttf_files[0]))
+        output_filename = os.path.join(output_folder, f"{font_name}.c")
+        counter = 1
+        while os.path.exists(normalize_path(output_filename)):
+            output_filename = os.path.join(output_folder, f"{font_name}({counter}).c")
+            counter += 1
         try:
-            out_file = generate_lvgl_font_c_multi(font_inputs, font_name, int(font_size), int(bpp))
+            call_lv_font_conv(
+                ttf_files,
+                output_filename,
+                font_name,
+                int(font_size),
+                bpp,
+                ranges_list
+            )
             for block in self.file_blocks:
-                block.set_status([("Font generated: " + os.path.basename(out_file), True)])
-            messagebox.showinfo("Success", f"Generated font file:\n{out_file}")
+                block.set_status([("Font generated: " + os.path.basename(output_filename), True)])
+            messagebox.showinfo("Success", f"Generated font file:\n{output_filename}")
         except Exception as e:
             for block in self.file_blocks:
                 block.set_status([(f"Error during font generation: {e}", False)])
