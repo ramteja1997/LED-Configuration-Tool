@@ -1,26 +1,28 @@
 [Setup]
-AppName=LVGL Font Generator
+AppName=Centum Configuration Tool
 AppVersion=1.0
-DefaultDirName={pf}\LVGLFontGenerator
-DefaultGroupName=LVGL Font Generator
-OutputBaseFilename=LVGLFontGenerator_Installer
+DefaultDirName={pf}\CentumConfigurationTool
+DefaultGroupName=Centum Configuration Tool
+OutputBaseFilename=CentumConfigurationTool
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-SetupIconFile="D:\Digicomm Daily ACT\LED Zone Digicomm\LVGL_FontGen.ico"
+
+SetupIconFile="icons\CentumTool.ico"
+OutputDir="Output"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "dist\font2c_lvgl.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\CentumConfigurationTool.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\LVGL Font Generator"; Filename: "{app}\font2c_lvgl.exe"
-Name: "{commondesktop}\LVGL Font Generator"; Filename: "{app}\font2c_lvgl.exe"; Tasks: desktopicon
+Name: "{group}\Centum Configuration Tool"; Filename: "{app}\CentumConfigurationTool.exe"
+Name: "{commondesktop}\Centum Configuration Tool"; Filename: "{app}\CentumConfigurationTool.exe"; Tasks: desktopicon
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a &Desktop icon"; GroupDescription: "Additional icons:"
 
 [Run]
-Filename: "{app}\font2c_lvgl.exe"; Description: "Launch LVGL Font Generator"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\CentumConfigurationTool.exe"; Description: "Launch Centum Configuration Tool"; Flags: nowait postinstall skipifsilent
