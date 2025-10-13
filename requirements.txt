@@ -1,2 +1,6 @@
-psutil
 freetype-py
+PyQt5
+Pillow
+PyInstaller
+setuptools
+wheel
