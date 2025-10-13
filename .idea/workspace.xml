@@ -5,20 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="697e1680-bd07-4ac1-9ecc-edd554ace574" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/LED Zone Digicomm.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/LED Zone Digicomm.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Output/LVGLFontGenerator_Installer.exe" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Setup.iss" beforeDir="false" afterPath="$PROJECT_DIR$/Setup.iss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/font2c_lvgl/Analysis-00.toc" beforeDir="false" afterPath="$PROJECT_DIR$/build/font2c_lvgl/Analysis-00.toc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/font2c_lvgl/EXE-00.toc" beforeDir="false" afterPath="$PROJECT_DIR$/build/font2c_lvgl/EXE-00.toc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/font2c_lvgl/PKG-00.toc" beforeDir="false" afterPath="$PROJECT_DIR$/build/font2c_lvgl/PKG-00.toc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/font2c_lvgl/PYZ-00.toc" beforeDir="false" afterPath="$PROJECT_DIR$/build/font2c_lvgl/PYZ-00.toc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/font2c_lvgl/base_library.zip" beforeDir="false" afterPath="$PROJECT_DIR$/build/font2c_lvgl/base_library.zip" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/font2c_lvgl/font2c_lvgl.pkg" beforeDir="false" afterPath="$PROJECT_DIR$/build/font2c_lvgl/font2c_lvgl.pkg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/font2c_lvgl/xref-font2c_lvgl.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/font2c_lvgl/xref-font2c_lvgl.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build_installer.py" beforeDir="false" afterPath="$PROJECT_DIR$/build_installer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/font2c_lvgl.exe" beforeDir="false" afterPath="$PROJECT_DIR$/dist/font2c_lvgl.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dist/LVGLFontGenerator_Installer.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dist/font2c_lvgl.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/font2c_lvgl.spec" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/icons/LVGL_FontGen.ico" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
