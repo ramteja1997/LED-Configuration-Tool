@@ -1,19 +1,31 @@
 import subprocess
-import os
 import sys
+import importlib
+
+def check_and_install_modules(required_modules):
+    for mod_name, pkg_name in required_modules.items():
+        try:
+            importlib.import_module(mod_name)
+        except ImportError:
+            print(f"Module '{mod_name}' not found. Installing {pkg_name}...")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", pkg_name])
+            print(f"Module '{mod_name}' installed!")
+
+required_modules = {
+    "psutil": "psutil",
+    "requests": "requests"
+}
+
+check_and_install_modules(required_modules)
+
+import os
 import shutil
 import webbrowser
 import time
 import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import requests
-
-try:
-    import psutil
-except ImportError:
-    print("psutil not found, installing...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "psutil"])
-    import psutil
+import psutil
 
 PYINSTALLER = "pyinstaller"
 ISCC_PATH = r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
@@ -102,11 +114,8 @@ def upload_to_gofile(filepath):
     response.raise_for_status()
     data = response.json()
     print(f"Response data received: {data}")
-    # Keep all returned information if available
     if data.get("status") == "ok":
         download_link = data["data"].get("downloadPage")
-        download_id = data["data"].get("fileId")
-        # You can also keep other fields in data["data"] if needed
         print(f"Upload succeeded. Download page: {download_link}")
         return download_link
     else:
