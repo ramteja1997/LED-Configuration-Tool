@@ -1,73 +1,163 @@
+# LED-Font-Converter
 
-This script/project provides a graphical user interface (GUI) to convert multiple TrueType font (TTF) files into C source code files compatible with LVGL embedded graphics library.
+LED-Font-Converter is a desktop graphical application designed for converting TrueType font (TTF) files into C source code files compatible with the LVGL (Light and Versatile Graphics Library) embedded graphics library. This project simplifies the process of generating custom fonts for embedded systems by allowing users to specify font properties such as size, bits per pixel (bpp), and Unicode ranges, all via an easy-to-use interface.
 
-### Key functions and classes:
+---
 
-- **`SingleFontConverter` class**  
-  Manages one font conversion widget allowing the user to:  
-  - Enter font name  
-  - Select a TTF file using a file dialog  
-  - Specify font size in pixels and bits per pixel (bpp)  
-  - Define Unicode range (start and end in hex)  
-  - Generate the corresponding `.c` font source file using FreeType rendering  
+## Features
 
-- **`convert_font` method**  
-  Validates inputs, processes the TTF font via FreeType, and creates the LVGL-compatible `.c` file with bitmap glyph data and necessary headers.
+- **Multiple Font Conversion Widgets:** Convert multiple fonts simultaneously (default support up to 5 fonts).
+- **Customizable Font Parameters:** Specify font name, size (in pixels), bits per pixel (quality), and Unicode range (start and end in hex).
+- **Automated Glyph Rendering:** Uses FreeType library bindings to render precise glyph bitmaps for the specified Unicode ranges.
+- **LVGL-Compatible Output:** Generates complete `.c` source files with glyph bitmaps and metadata formatted to LVGL's font API.
+- **Batch Processing:** Enable efficient font development for complex embedded applications.
+- **Build and Packaging Automation:** Provided build scripts automate creation of standalone Windows executables and professional installers.
+- **Installer Support:** Uses Inno Setup to create a user-friendly installation experience including custom icons and uninstall functionality.
 
-- **`generate_lvgl_font_c` method**  
-  Core logic that loads each glyph bitmap within the Unicode range, formats it into a C array, and writes complete LVGL font source code to file.
+---
 
-- **`LVGLFontConverterApp` class**  
-  Creates the main application window with a scrollable canvas to hold multiple `SingleFontConverter` instances (up to 5 by default).  
-  Also handles mouse wheel (vertical and horizontal) scrolling support for ease of navigation.
+## Prerequisites and Dependencies
 
-***
+### Software Requirements
 
-### Usage
+- **Operating System:** Windows 10 or later recommended for building and running the packaged app.
+- **Python:** Version 3.7 or higher.
+- **Node.js (optional):** Version 14+ required if using LVGL’s `lv_font_conv` command-line conversions.
+- **Inno Setup Compiler (ISCC.exe):** Required for building Windows installers.
 
-Run the script to open the GUI. For each font converter widget:  
-- Enter a font name  
-- Browse and select the `.ttf` font file  
-- Adjust font size, bpp, and Unicode range  
-- Click "Generate .c File" to output the LVGL font source C file alongside the TTF file
+### Python Libraries
 
-This tool simplifies generating multiple embedded fonts for LVGL projects efficiently in one unified interface.
+Install via `pip install` or use the provided `requirements.txt`:
 
+- `freetype-py` — Python bindings for FreeType to render TTF glyphs.
+- `PyQt5` — Provides the GUI framework.
+- `Pillow` — Image processing for bitmap manipulation.
+- `PyInstaller` — Used for packaging the Python app as an executable.
+- `setuptools` and `wheel` — For Python packaging utilities.
 
-#  build_and_installer.py script
+---
 
-## Automated Build and Installer Script
+## Installation and Setup
 
-This Python script automates the building and packaging process of the LVGL Font Generator application.
+1. **Clone the repository:**
+git clone https://github.com/ramteja1997/LED-Font-Converter.git
+cd LED-Font-Converter
 
-### What each function does:
+text
 
-- **`check_and_install_pyinstaller()`**  
-  Checks if PyInstaller is installed; if missing, installs it via pip.
+2. **Install Python dependencies:**
+pip install -r requirements.txt
 
-- **`check_iscc()`**  
-  Verifies the presence of Inno Setup Compiler (`ISCC.exe`) to compile the installer.
+text
 
-- **`delete_existing_exe(exe_name)`**  
-  Deletes any previously built executable from the `dist` folder to ensure a clean build.
+3. **Install Node.js and Inno Setup Compiler:**
+- Download and install Node.js from the official website if you plan to use LVGL CLI tools.
+- Download Inno Setup Compiler from [jrsoftware.org](https://jrsoftware.org/isinfo.php) for generating Windows installers.
 
-- **`build_exe(icon_path)`**  
-  Uses PyInstaller to build a one-file, windowed executable of the Python app with the specified icon.
+---
 
-- **`run_uninstaller()`**  
-  Attempts to uninstall any existing installed application: runs Inno Setup uninstaller if found or manually deletes the installed executable.
+## Usage Guide
 
-- **`delete_existing_installer()`**  
-  Deletes any existing installer executable in the output folder (`LVGLFontGenerator_Installer.exe`) to avoid conflicts.
+### Running the Application
 
-- **`run_installer()`**  
-  Runs the Inno Setup Compiler to generate a new installer executable from the `.iss` script.
+Launch the main GUI application to start converting fonts:
 
-- **`main()`**  
-  Controls the workflow: checks prerequisites, builds the executable, uninstalls old app, deletes old installer, then builds new installer with clear step-by-step console output.
+python main.py
 
-***
+text
 
-### Usage
+### Using the Font Converter GUI
 
-Run this script after placing your `.py`, `.ico`, and `.iss` files in their appropriate locations. It ensures automatic building, clean upgrade uninstallations, and installer generation for distribution on Windows systems.
+- **Add Fonts:** Up to five font conversion widgets are available.
+- **Font Name:** Enter a descriptive name for the font output.
+- **Select TTF Font:** Browse and select the TTF file from disk.
+- **Font Size (Pixels):** Specify the height of glyphs.
+- **Bits Per Pixel (BPP):** Choose between 1, 2, 4, or 8 bpp for glyph quality and anti-aliasing.
+- **Unicode Range:** Enter hexadecimal Unicode start and end points to limit conversion to required glyphs.
+- **Generate C File:** Click the button to generate the LVGL-compatible `.c` font source.
+
+The generated `.c` file will be saved alongside the original TTF file, with automatic file renaming to avoid overwrites.
+
+---
+
+## How It Works: Internal Workflow
+
+1. **Font Loading:**
+   - The selected TTF font is loaded via FreeType bindings (`freetype-py`).
+   - Font size and rendering parameters are set.
+
+2. **Glyph Rendering:**
+   - For each Unicode character in the selected range, a glyph bitmap is rendered.
+   - The bitmap data is extracted and stored.
+
+3. **Source Code Generation:**
+   - Bitmap arrays and glyph descriptors are formatted as C arrays.
+   - Full LVGL font structures including metadata are generated.
+   - The final font `.c` file is saved.
+
+---
+
+## Building Executable & Installer
+
+### Using the Build Script
+
+Run the build and installer script to package the application into a single executable and an installer:
+
+python build_and_installer.py
+
+text
+
+- **PyInstaller Integration:**
+  - Compiles Python scripts into a single Windows executable.
+  - Applies the custom application icon.
+  - Cleans previous builds to ensure fresh packaging.
+
+- **Inno Setup Installer Creation:**
+  - Runs the Inno Setup Compiler on the included `.iss` script.
+  - Creates a Windows installer `.exe` with uninstall support.
+  - Ensures old installations are properly removed before new installation.
+
+---
+
+## Project Structure
+
+LED-Font-Converter/
+│
+├── main.py # Main application entry point (GUI launcher)
+├── SingleFontConverter.py # Font conversion widget and logic
+├── build_and_installer.py # Automation script for building and packaging
+├── installer_script.iss # Inno Setup script for installer configuration
+├── requirements.txt # List of Python dependencies
+├── resources/ # Icons and auxiliary resources
+└── README.md # Project documentation (this file)
+
+text
+
+---
+
+## Troubleshooting
+
+- Ensure all dependencies are correctly installed, especially Python libraries.
+- For building, verify that Inno Setup Compiler is installed and accessible on PATH.
+- Check that the Unicode ranges you specify are valid and supported by the TTF font.
+- If font conversion fails, verify that the TTF file is valid and not corrupted.
+
+---
+
+## Contribution
+
+Contributions are welcome! Please fork the repo and submit pull requests for fixes or new features. Open issues for suggestions or bugs.
+
+---
+
+## License
+
+This project is licensed under the MIT License.
+
+---
+
+## Contact
+
+For support or questions, please open an issue on GitHub or contact the maintainers through the repository.
+
+---
