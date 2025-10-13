@@ -6,6 +6,7 @@ import webbrowser
 import time
 import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+import requests
 
 try:
     import psutil
@@ -20,7 +21,7 @@ ISCC_PATH = r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 APP_PY = os.path.join(BASE_DIR, "font2c_lvgl.py")
 APP_ISS = os.path.join(BASE_DIR, "Setup.iss")
-ICON_FILE = os.path.join(BASE_DIR, "icons", "CentumTool.ico") # (Use branded Centum icon if available!)
+ICON_FILE = os.path.join(BASE_DIR, "icons", "CentumTool.ico")
 
 DIST_FOLDER = os.path.join(BASE_DIR, "dist")
 OUTPUT_FOLDER = os.path.join(BASE_DIR, "Output")
@@ -57,7 +58,7 @@ def check_iscc():
 def build_exe(icon_path):
     remove_folder_if_exists(DIST_FOLDER)
     remove_folder_if_exists(OUTPUT_FOLDER)
-    print_step(3, f"Building CentumConfigurationTool.exe executable")
+    print_step(3, f"Building {EXE_NAME} executable")
     cmd = [
         PYINSTALLER,
         "--onefile",
@@ -92,74 +93,29 @@ def run_installer_compiler():
     subprocess.run([ISCC_PATH, APP_ISS], check=True, cwd=iss_dir)
     print("Installer created successfully.")
 
-class ThreadedHTTPServer:
-    def __init__(self, host, port, directory):
-        self.server = ThreadingHTTPServer(
-            (host, port),
-            lambda *args, **kwargs: SimpleHTTPRequestHandler(*args, directory=directory, **kwargs),
-        )
-    def start(self):
-        thread = threading.Thread(target=self.server.serve_forever)
-        thread.daemon = True
-        thread.start()
-    def stop(self):
-        self.server.shutdown()
-        self.server.server_close()
-
-def create_download_page(output_folder, exe_name):
-    html_path = os.path.join(output_folder, "index.html")
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Download Centum Configuration Tool</title>
-        <style>
-            body {{ font-family: Arial, sans-serif; padding: 2em; }}
-            .download-link {{
-                display: inline-block;
-                background-color: #0078d7;
-                color: white;
-                padding: 1em 2em;
-                text-decoration: none;
-                border-radius: 6px;
-                font-size: 1.2em;
-            }}
-            .download-link:hover {{
-                background-color: #005a9e;
-            }}
-        </style>
-    </head>
-    <body>
-        <h1>Centum Configuration Tool Installer</h1>
-        <p>Click below to manually download the installer:</p>
-        <a class="download-link" href="{exe_name}">Download Installer</a>
-    </body>
-    </html>
-    """
-    with open(html_path, "w", encoding="utf-8") as f:
-        f.write(html_content)
-    return html_path
-
-def serve_localhost():
-    if not os.path.exists(OUTPUT_FOLDER):
-        os.makedirs(OUTPUT_FOLDER)
-    html_path = create_download_page(OUTPUT_FOLDER, EXE_NAME)
-    print_step(6, f"Serving {OUTPUT_FOLDER} on http://localhost:{SERVER_PORT}/")
-    server = ThreadedHTTPServer("127.0.0.1", SERVER_PORT, OUTPUT_FOLDER)
-    server.start()
-    url = f"http://localhost:{SERVER_PORT}/index.html"
-    print(f"Opening download page at {url}")
-    webbrowser.open(url)
-    try:
-        while True:
-            time.sleep(5)
-    except KeyboardInterrupt:
-        print("Shutting down server...")
-        server.stop()
+def upload_to_gofile(filepath):
+    print_step("Upload", f"Uploading {filepath} to gofile.io...")
+    upload_url = "https://store9.gofile.io/uploadFile"
+    with open(filepath, 'rb') as f:
+        files = {'file': (os.path.basename(filepath), f)}
+        response = requests.post(upload_url, files=files)
+    response.raise_for_status()
+    data = response.json()
+    print(f"Response data received: {data}")
+    # Keep all returned information if available
+    if data.get("status") == "ok":
+        download_link = data["data"].get("downloadPage")
+        download_id = data["data"].get("fileId")
+        # You can also keep other fields in data["data"] if needed
+        print(f"Upload succeeded. Download page: {download_link}")
+        return download_link
+    else:
+        print(f"Upload failed with response: {data}")
+        return None
 
 def main():
     print("\n" + "#" * 60)
-    print("===== Centum Configuration Tool Build and Serve Script =====")
+    print("===== Centum Configuration Tool Build and Upload Script =====")
     print("#" * 60 + "\n")
 
     if not os.path.exists(APP_PY):
@@ -168,16 +124,27 @@ def main():
     if not os.path.exists(ICON_FILE):
         print(f"Icon file not found: {ICON_FILE}")
         sys.exit(1)
+
     check_and_install_pyinstaller()
     check_iscc()
+
     exe_path = build_exe(ICON_FILE)
     kill_running_processes(EXE_NAME)
+
     if not os.path.exists(OUTPUT_FOLDER):
         os.makedirs(OUTPUT_FOLDER)
+
     exe_output_path = os.path.join(OUTPUT_FOLDER, EXE_NAME)
     shutil.copyfile(exe_path, exe_output_path)
+
     run_installer_compiler()
-    serve_localhost()
+
+    https_link = upload_to_gofile(exe_output_path)
+    if https_link:
+        print(f"\nYou can share this universal download link:\n{https_link}")
+        webbrowser.open(https_link)
+    else:
+        print("Failed to upload installer to gofile.io.")
 
 if __name__ == "__main__":
     SERVER_PORT = 9000
