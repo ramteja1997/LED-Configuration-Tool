@@ -1,15 +1,2 @@
-Core Dependencies
-Python 3.x: Required to run the main application and build scripts​
-FreeType: Used for rendering TTF fonts and extracting glyph bitmaps during conversion​
-PyInstaller: Needed to package the Python application into a standalone Windows executable​
-Inno Setup Compiler (ISCC.exe): Required to generate the Windows installer executable from the .iss script​
-
-LVGL-Specific Requirements
-LVGL Font Converter Tools: The project relies on LVGL's font conversion methodology, which can be done through the online converter or the Node.js-based lv_font_conv tool​
-Node.js v14+: Required if using the lv_font_conv command-line tool for font conversion​
-LVGL Library: The generated .c files are designed to be compatible with LVGL's font system for embedded displays​
-
-Development and Build Tools
-Python GUI Libraries: The application uses Python's GUI framework (likely Tkinter or similar) for the graphical interface​
-Build Automation Script: The build_and_installer.py script automates the build process, requiring proper configuration of paths and dependencies​
-Icon File (.ico): Required for customizing the application icon during the PyInstaller build process​
+psutil
+freetype-py
