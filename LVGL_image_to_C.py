@@ -17,9 +17,11 @@ def format_c_array(arr, hex_fmt, per_line=5760):
 def convert_image(image):
     img = image.convert('RGB')
     data = np.array(img)
+    # reorder channels RGB to BGR
+    data = data[..., [2, 1, 0]]
     flat = data.flatten(order='C')
     dtype = 'uint8_t'
-    hex_fmt = '0x{:02X}'
+    hex_fmt = '0x{:02x}'
     return flat, dtype, hex_fmt
 
 def image_to_c_file(img_path):
