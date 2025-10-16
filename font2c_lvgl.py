@@ -106,7 +106,7 @@ def parse_individual_ranges(range_text):
 class StatusText(tk.Text):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-        self.config(state="disabled", bg="#f0f0f0", relief=tk.FLAT, height=7, wrap="word")
+        self.config(state="disabled", bg="#f0f0f0", relief=tk.FLAT, height=3, wrap="word")
         self.tag_configure("success", foreground="green")
         self.tag_configure("error", foreground="red")
 
@@ -139,77 +139,82 @@ class FontFileEntry:
         self.master = master
         self.index = index
         self.remove_callback = remove_callback
-        box_width = 1200
+
         self.frame = tk.Frame(
-            master, relief=tk.GROOVE, bd=2, padx=18, pady=18,
-            width=box_width, height=320, bg="#f9f9f9"
+            master, relief=tk.GROOVE, bd=2, padx=10, pady=10, bg="#f9f9f9"
         )
-        self.frame.pack_propagate(False)
-        box_inner = tk.Frame(self.frame, bg="#f9f9f9", width=box_width-30)
-        box_inner.pack(expand=True)
-        # Row 1: Name, Font Size and TTF file + Browse in one line, centered
-        row1 = tk.Frame(box_inner, bg="#f9f9f9")
-        row1.pack(fill="x", pady=8)
-        row1.grid_columnconfigure(0, weight=1)
-        for col in range(8):
-            row1.grid_columnconfigure(col, weight=1)
-        tk.Label(row1, text="Name:", bg="#f9f9f9").grid(row=0, column=0, sticky="e", padx=3)
+        self.frame.pack(fill="x", pady=20, padx=10)
+
+        # Use grid for clean expansion
+        row = 0
+
+        # Row 1: Name, Font Size and TTF file + Browse
+        tk.Label(self.frame, text="Name:", bg="#f9f9f9").grid(row=row, column=0, sticky="e", padx=2, pady=2)
         self.font_name_var = tk.StringVar(value="file_name")
-        self.font_name_entry = tk.Entry(row1, textvariable=self.font_name_var, width=22)
-        self.font_name_entry.grid(row=0, column=1, padx=8)
-        tk.Label(row1, text="Font Size (px):", bg="#f9f9f9").grid(row=0, column=2, sticky="e", padx=3)
+        self.font_name_entry = tk.Entry(self.frame, textvariable=self.font_name_var, width=18)
+        self.font_name_entry.grid(row=row, column=1, sticky="w", padx=5, pady=2)
+
+        tk.Label(self.frame, text="Font Size (px):", bg="#f9f9f9").grid(row=row, column=2, sticky="e", padx=2, pady=2)
         self.font_size_var = tk.IntVar(value=1)
-        self.font_size_spin = tk.Spinbox(row1, from_=1, to=72, textvariable=self.font_size_var, width=7)
-        self.font_size_spin.grid(row=0, column=3, padx=8)
-        tk.Label(row1, text=f"TTF file {index + 1}:", bg="#f9f9f9").grid(row=0, column=4, sticky="e", padx=3)
+        self.font_size_spin = tk.Spinbox(self.frame, from_=1, to=72, textvariable=self.font_size_var, width=4)
+        self.font_size_spin.grid(row=row, column=3, sticky="w", padx=5, pady=2)
+
+        tk.Label(self.frame, text=f"TTF file {index + 1}:", bg="#f9f9f9").grid(row=row, column=4, sticky="e", padx=2, pady=2)
         self.path_var = tk.StringVar()
-        self.path_entry = tk.Entry(row1, textvariable=self.path_var, width=40)
-        self.path_entry.grid(row=0, column=5, padx=8)
-        browse_btn = tk.Button(row1, text="Browse", command=self.browse_file)
-        browse_btn.grid(row=0, column=6, padx=6)
+        self.path_entry = tk.Entry(self.frame, textvariable=self.path_var, width=36)
+        self.path_entry.grid(row=row, column=5, sticky="w", padx=5, pady=2)
+
+        browse_btn = tk.Button(self.frame, text="Browse", command=self.browse_file, width=8)
+        browse_btn.grid(row=row, column=6, sticky="w", padx=6, pady=2)
+
         if remove_callback and index != 0:
-            self.remove_btn = tk.Button(row1, text="🗑️ Remove", command=self.remove_self)
-            self.remove_btn.grid(row=0, column=7, padx=8)
-        # Row 2: Language selector (multiselect Listbox + vertical scrollbar), centered
-        row2 = tk.Frame(box_inner, bg="#f9f9f9")
-        row2.pack(fill="x", pady=6)
-        tk.Label(row2, text="Language(s):", bg="#f9f9f9", anchor="center").pack(side="top", anchor="n")
-        listbox_frame = tk.Frame(row2, bg="#f9f9f9")
-        listbox_frame.pack(side="top", anchor="center")
+            self.remove_btn = tk.Button(self.frame, text="🗑️ Remove", command=self.remove_self)
+            self.remove_btn.grid(row=row, column=7, padx=8, sticky="w")
+
+        # Next row: Language selector with Listbox and scrollbar
+        row += 1
+        tk.Label(self.frame, text="Language(s):", bg="#f9f9f9").grid(row=row, column=0, sticky="ne", pady=4)
         self.lang_listbox = tk.Listbox(
-            listbox_frame, selectmode="multiple", exportselection=False,
+            self.frame, selectmode="multiple", exportselection=False,
             height=5, width=20, font=("Segoe UI", 10)
         )
-        scrollbar = tk.Scrollbar(listbox_frame, orient="vertical", command=self.lang_listbox.yview)
-        self.lang_listbox.config(yscrollcommand=scrollbar.set)
-        self.lang_listbox.pack(side="left", anchor="center")
-        scrollbar.pack(side="left", fill="y", anchor="center")
+        lang_scrollbar = tk.Scrollbar(self.frame, orient="vertical", command=self.lang_listbox.yview)
+        self.lang_listbox.config(yscrollcommand=lang_scrollbar.set)
         for idx, lang in enumerate(LANGUAGE_UNICODE_RANGES.keys()):
             self.lang_listbox.insert("end", lang)
         self.lang_listbox.selection_set(0)
+        self.lang_listbox.grid(row=row, column=1, columnspan=2, sticky="nw", padx=3, pady=4)
+        lang_scrollbar.grid(row=row, column=3, sticky="nsw", padx=(0,8))
         self.suppress_range_event = False
         self.lang_listbox.bind("<<ListboxSelect>>", self.on_language_select)
-        # Row 3: Range box, centered
-        row3 = tk.Frame(box_inner, bg="#f9f9f9")
-        row3.pack(fill="x", pady=10)
-        tk.Label(row3, text="Range (max 5, comma/line-separated):",
-                 bg="#f9f9f9", anchor="center").pack(anchor="center")
-        self.range_text = tk.Text(row3, height=3, width=115)
+
+        # Range label
+        tk.Label(self.frame, text="Range (max 5, comma/line-separated):", bg="#f9f9f9").grid(
+            row=row, column=4, columnspan=3, sticky="w", padx=3, pady=4
+        )
+
+        # Next row: Range box and Unicode link
+        row += 1
+        self.range_text = tk.Text(self.frame, height=3, width=100)
         self.range_text.insert("1.0", LANGUAGE_UNICODE_RANGES["English"])
-        self.range_text.pack(anchor="center", pady=(0, 4))
+        self.range_text.grid(row=row, column=0, columnspan=7, sticky="ew", padx=2, pady=4)
+        self.frame.grid_columnconfigure(0, weight=1)
+        self.frame.grid_columnconfigure(6, weight=1)
         self.range_text.bind('<KeyRelease>', self.on_range_manual_edit)
-        # Row 4: Unicode Character Ranges link, centered
-        link_frame = tk.Frame(box_inner, bg="#f9f9f9")
-        link_frame.pack(fill="x", pady=3)
+
+        # Unicode range link (now always visible below range box)
+        row += 1
         link = tk.Label(
-            link_frame, text="Unicode Character Ranges", fg="blue", cursor="hand2",
+            self.frame, text="Unicode Character Ranges", fg="blue", cursor="hand2",
             bg="#f9f9f9", anchor="center"
         )
-        link.pack(anchor="center")
+        link.grid(row=row, column=0, columnspan=7, sticky="w", padx=8, pady=(0, 2))
         link.bind("<Button-1>", lambda e: webbrowser.open_new("https://jrgraphix.net/research/unicode.php"))
-        # Status at bottom
-        self.status_text = StatusText(box_inner)
-        self.status_text.pack(fill="x", pady=2)
+
+        # Status bar at bottom
+        row += 1
+        self.status_text = StatusText(self.frame, height=2)
+        self.status_text.grid(row=row, column=0, columnspan=7, sticky="ew", padx=2, pady=2)
 
     def on_language_select(self, event=None):
         if self.suppress_range_event:
@@ -349,55 +354,51 @@ class LVGLFontConverterApp:
         self.root.geometry(f"{width}x{height}")
         self.root.minsize(width=800, height=600)
 
-        # Container holds everything, fixed size with expansion
-        container = tk.Frame(self.root, width=width-20, height=height-40)
-        container.pack_propagate(False)
-        container.place(relx=0.5, rely=0.5, anchor="center")
+        # Top-level layout
+        self.container = tk.Frame(self.root, bg="#eeeeee")
+        self.container.pack(fill="both", expand=True)
 
-        title_label = tk.Label(container, text="Centum Configuration Tool", font=("Segoe UI", 32, "bold"))
+        title_label = tk.Label(self.container, text="Centum Configuration Tool", font=("Segoe UI", 32, "bold"), bg="#eeeeee")
         title_label.pack(pady=(18, 8))
-        subtitle_label = tk.Label(container, text="Convert TTF and WOFF font files to a C source array for microcontrollers.",
-                                 font=("Segoe UI", 18, "bold"))
+        subtitle_label = tk.Label(self.container, text="Convert TTF and WOFF font files to a C source array for microcontrollers.",
+                                 font=("Segoe UI", 18, "bold"), bg="#eeeeee")
         subtitle_label.pack(pady=(0, 9))
         desc_text = (
             "This tool lets you turn any TrueType (TTF) or WOFF font file into a C array suitable for embedded devices. "
             "You can select Unicode range, font name and size, bit-per-pixel (bpp), and multiple languages per font block."
         )
-        desc_label = tk.Label(container, text=desc_text, font=("Segoe UI", 12), wraplength=width-50, justify="center")
+        desc_label = tk.Label(self.container, text=desc_text, font=("Segoe UI", 12), wraplength=width-50, justify="center", bg="#eeeeee")
         desc_label.pack(pady=(0, 30))
 
-        settings_fr = tk.Frame(container, pady=8, padx=5)
+        settings_fr = tk.Frame(self.container, pady=8, padx=5, bg="#eeeeee")
         settings_fr.pack()
-        tk.Label(settings_fr, text="Bpp:", width=6, font=("Segoe UI", 10)).pack(side="left")
+        tk.Label(settings_fr, text="Bpp:", width=6, font=("Segoe UI", 10), bg="#eeeeee").pack(side="left")
         self.bpp_var = tk.StringVar(value='1')
         ttk.Combobox(settings_fr, textvariable=self.bpp_var, values=['1', '2', '3', '4', '8'],
                      width=3, state='readonly', font=("Segoe UI", 10)).pack(side="left", padx=6)
 
-        canvas_fr = tk.Frame(container)
-        canvas_fr.pack(expand=True, pady=26, fill="both")
-        self.canvas = tk.Canvas(canvas_fr)
-        v_scrollbar = tk.Scrollbar(canvas_fr, orient="vertical", command=self.canvas.yview)
-        self.canvas.configure(yscrollcommand=v_scrollbar.set)
+        # Scrollable frame region for all font blocks
+        self.canvas_fr = tk.Frame(self.container, bg="#eeeeee")
+        self.canvas_fr.pack(fill="both", expand=True, padx=10)
+        self.canvas = tk.Canvas(self.canvas_fr, bg="#f6f6f6", highlightthickness=0)
         self.canvas.pack(side="left", fill="both", expand=True)
-        v_scrollbar.pack(side="right", fill="y")
+        self.v_scrollbar = tk.Scrollbar(self.canvas_fr, orient="vertical", command=self.canvas.yview)
+        self.v_scrollbar.pack(side="right", fill="y")
+        self.canvas.configure(yscrollcommand=self.v_scrollbar.set)
 
-        self.scrollable_frame = tk.Frame(self.canvas)
-        self.scrollable_frame.bind(
-            "<Configure>",
-            lambda e: self.canvas.configure(
-                scrollregion=self.canvas.bbox("all")
-            )
-        )
-        self.canvas_frame = self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-
-        # Bindings to update canvas size with window resizing
-        self.scrollable_frame.bind("<Configure>", self._on_frame_configure)
-        self.canvas.bind("<Configure>", self._on_canvas_configure)
+        # Inner frame for font file entries
+        self.scrollable_frame = tk.Frame(self.canvas, bg="#f6f6f6")
+        self.canvas_window = self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
 
         self.file_blocks = []
         self.add_font_block()
 
-        self.buttons_frame = tk.Frame(container)
+        # Update scrollregion on changes
+        self.scrollable_frame.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+        self.canvas.bind("<Configure>", self._on_canvas_configure)
+
+        # Button to add font and submit, placed at bottom
+        self.buttons_frame = tk.Frame(self.container, bg="#eeeeee")
         self.buttons_frame.pack(fill="x", pady=14)
         self.add_font_btn = tk.Button(
             self.buttons_frame, text="+ Include another font", command=self.add_font_block
@@ -407,16 +408,13 @@ class LVGLFontConverterApp:
             self.buttons_frame, text="Submit", command=self.submit_all, bg='black', fg='white'
         )
         self.submit_btn.pack(side="top", pady=6, ipadx=34)
+
         self._bind_mousewheel(self.canvas)
 
-    def _on_frame_configure(self, event):
-        # Reset the scroll region to encompass the inner frame
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-
     def _on_canvas_configure(self, event):
-        # Update the window item width to fill canvas
+        # Expand inner frame to canvas width
         canvas_width = event.width
-        self.canvas.itemconfig(self.canvas_frame, width=canvas_width)
+        self.canvas.itemconfig(self.canvas_window, width=canvas_width)
 
     def _bind_mousewheel(self, widget):
         widget.bind_all("<MouseWheel>", lambda e: widget.yview_scroll(int(-1 * (e.delta / 120)), "units"))
@@ -430,7 +428,6 @@ class LVGLFontConverterApp:
         idx = len(self.file_blocks)
         remove_callback = self.remove_font_block if idx != 0 else None
         block = FontFileEntry(self.scrollable_frame, idx, remove_callback)
-        block.frame.pack(fill="x", pady=32)
         self.file_blocks.append(block)
 
     def remove_font_block(self, block):
