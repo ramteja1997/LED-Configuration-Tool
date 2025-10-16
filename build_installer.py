@@ -1,31 +1,51 @@
 import subprocess
 import sys
 import importlib
+import os
+import shutil
+
+# Check for and import psutil and requests, install if missing
+# Handling tkinter separately because it often ships with Python and is not always installable via pip
+try:
+    from tkinter import filedialog, Tk
+except ImportError:
+    print("Tkinter is not installed. Please install it before running this script.")
+    sys.exit(1)
 
 def check_and_install_modules(required_modules):
     for mod_name, pkg_name in required_modules.items():
-        try:
-            importlib.import_module(mod_name)
-        except ImportError:
-            print(f"Module '{mod_name}' not found. Installing {pkg_name}...")
-            subprocess.check_call([sys.executable, "-m", "pip", "install", pkg_name])
-            print(f"Module '{mod_name}' installed!")
+        if mod_name == "tkinter":
+            try:
+                importlib.import_module(mod_name)
+            except ImportError:
+                print("Error: Tkinter module is not installed. Please install the appropriate package manually.")
+                sys.exit(1)
+        else:
+            try:
+                importlib.import_module(mod_name)
+            except ImportError:
+                print(f"Module '{mod_name}' not found. Installing {pkg_name}...")
+                subprocess.check_call([sys.executable, "-m", "pip", "install", pkg_name])
+                print(f"Module '{mod_name}' installed!")
 
 required_modules = {
     "psutil": "psutil",
-    "requests": "requests"
+    "requests": "requests",
+    "tkinter": "tkinter"  # checked as special case
 }
 
 check_and_install_modules(required_modules)
 
-import os
-import shutil
-import webbrowser
-import time
-import threading
-from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-import requests
 import psutil
+import requests
+from tkinter import filedialog, Tk
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except AttributeError:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 PYINSTALLER = "pyinstaller"
 ISCC_PATH = r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
@@ -33,12 +53,10 @@ ISCC_PATH = r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 APP_PY = os.path.join(BASE_DIR, "font2c_lvgl.py")
 APP_ISS = os.path.join(BASE_DIR, "Setup.iss")
-ICON_FILE = os.path.join(BASE_DIR, "icons", "CentumTool.ico")
-
+ICON_FILE = resource_path(os.path.join("icons", "CentumTool.ico"))
 DIST_FOLDER = os.path.join(BASE_DIR, "dist")
 OUTPUT_FOLDER = os.path.join(BASE_DIR, "Output")
 EXE_NAME = "CentumConfigurationTool.exe"
-SERVER_PORT = 9000
 
 def print_step(step_num, description):
     print("\n" + "*" * 60)
@@ -80,6 +98,7 @@ def build_exe(icon_path):
         "--name=CentumConfigurationTool",
         f"--distpath={DIST_FOLDER}",
         "--clean",
+        "--add-data", f"icons{os.pathsep}icons"
     ]
     subprocess.run(cmd, check=True)
     exe_path = os.path.join(DIST_FOLDER, EXE_NAME)
@@ -105,26 +124,24 @@ def run_installer_compiler():
     subprocess.run([ISCC_PATH, APP_ISS], check=True, cwd=iss_dir)
     print("Installer created successfully.")
 
-def upload_to_gofile(filepath):
-    print_step("Upload", f"Uploading {filepath} to gofile.io...")
-    upload_url = "https://store9.gofile.io/uploadFile"
-    with open(filepath, 'rb') as f:
-        files = {'file': (os.path.basename(filepath), f)}
-        response = requests.post(upload_url, files=files)
-    response.raise_for_status()
-    data = response.json()
-    print(f"Response data received: {data}")
-    if data.get("status") == "ok":
-        download_link = data["data"].get("downloadPage")
-        print(f"Upload succeeded. Download page: {download_link}")
-        return download_link
-    else:
-        print(f"Upload failed with response: {data}")
-        return None
+def ask_save_location(default_filename):
+    root = Tk()
+    root.withdraw()
+    root.attributes('-topmost', True)
+    root.update()
+    file_path = filedialog.asksaveasfilename(
+        parent=root,
+        title="Save EXE As",
+        defaultextension=".exe",
+        initialfile=default_filename,
+        filetypes=[("Executable files", "*.exe"), ("All files", "*.*")]
+    )
+    root.destroy()
+    return file_path
 
 def main():
     print("\n" + "#" * 60)
-    print("===== Centum Configuration Tool Build and Upload Script =====")
+    print("===== Centum Configuration Tool Build Script =====")
     print("#" * 60 + "\n")
 
     if not os.path.exists(APP_PY):
@@ -148,13 +165,14 @@ def main():
 
     run_installer_compiler()
 
-    https_link = upload_to_gofile(exe_output_path)
-    if https_link:
-        print(f"\nYou can share this universal download link:\n{https_link}")
-        webbrowser.open(https_link)
+    print_step("Save", "Please select where to save your EXE file.")
+    save_path = ask_save_location(EXE_NAME)
+
+    if save_path:
+        shutil.copyfile(exe_output_path, save_path)
+        print(f"EXE saved to: {save_path}")
     else:
-        print("Failed to upload installer to gofile.io.")
+        print("No save location selected. Exiting.")
 
 if __name__ == "__main__":
-    SERVER_PORT = 9000
     main()
