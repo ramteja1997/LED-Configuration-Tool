@@ -352,7 +352,7 @@ def check_block_ranges(block):
         show_range_popup(messages)
         return False
 
-class LVGLFontConverterApp:
+class FontConverterApp:
     def __init__(self, parent=None):
         if parent is None:
             self.root = tk.Tk()
@@ -383,7 +383,7 @@ class LVGLFontConverterApp:
                                   font=("Segoe UI", 12, "bold"), bg=HEADER_BG, fg="#2b66ad")
         subtitle_label.pack(pady=(0, 7))
         desc_label = tk.Label(container,
-                              text="Select a font and Unicode range, adjust font size and bit-per-pixel (bpp), and export to a C source file suitable for LVGL or microcontroller applications. Multiple languages and font blocks are supported.",
+                              text="Select a font and Unicode range, adjust font size and bit-per-pixel (bpp), and export to a C source file suitable for microcontroller applications. Multiple languages and font blocks are supported.",
                               font=("Segoe UI", 11), bg=HEADER_BG, fg="#46474a", wraplength=760, justify="center")
         desc_label.pack(pady=(0, 14))
 
@@ -492,5 +492,5 @@ class LVGLFontConverterApp:
                 block.set_status([(f"Error during font generation: {e}", False)])
 
 if __name__ == "__main__":
-    app = LVGLFontConverterApp()
+    app = FontConverterApp()
     app.root.mainloop()

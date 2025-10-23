@@ -1,5 +1,5 @@
 import tkinter as tk
-from font2c_lvgl import LVGLFontConverterApp
+from font2c_lvgl import FontConverterApp
 from img2_c_lvgl import ImageConverterTool
 from PIL import Image, ImageTk  # Optional but better for png/jpg
 import os
@@ -12,7 +12,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 def open_font_converter():
-    LVGLFontConverterApp(parent=root)
+    FontConverterApp(parent=root)
 
 def open_image_converter():
     ImageConverterTool(parent=root)
