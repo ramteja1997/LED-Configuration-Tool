@@ -18,10 +18,9 @@ class ImageConverterTool:
             self.root = tk.Toplevel(parent)
             show_back = True
 
-            # Place this after your main frame/container is created
             if show_back:
                 back_btn = tk.Button(
-                    self.root,  # or use your main container/frame if needed
+                    self.root,
                     text="Back",
                     font=("Helvetica", 12, "bold"),
                     command=self.root.destroy
@@ -37,12 +36,9 @@ class ImageConverterTool:
         self._setup_ui()
 
     def _setup_ui(self):
-
         tk.Label(self.root, text="Centum Configuration Image Converter Tool\n",
                  font=('Helvetica', 22, "bold"), bg="#e8e3f7").pack(pady=(18, 2))
-        tk.Label(self.root, text="This tool converts BMP, JPG, JPEG, PNG, GIF, and ICO images into RGB888 C arrays "
-                                 "for use with embedded or desktop systems.\n It is ideal for firmware graphics "
-                                 "integration and hardware display development.\n",
+        tk.Label(self.root, text="This tool converts BMP, JPG, JPEG, PNG, GIF, and ICO images into C arrays with RGB888 Color Format",
                  font=('Helvetica', 11), bg="#e8e3f7").pack(pady=(0, 14))
 
         below_header_frame = tk.Frame(self.root, bg="#e8e3f7")
@@ -53,11 +49,8 @@ class ImageConverterTool:
         left_panel = tk.Frame(content_frame, bg="#e8e3f7")
         left_panel.pack(side=tk.LEFT, fill=tk.Y, expand=False, anchor="n", padx=(0,18))
 
-        tk.Label(left_panel, text="Color format", font=('Helvetica', 12), bg="#e8e3f7").pack(pady=(10,6), anchor="center")
-        tk.Label(left_panel, text="RGB888", font=('Helvetica', 10,"bold"), bg="#fff", fg="#333", width=17, bd=1, relief=tk.SOLID).pack(pady=(0,20), anchor="w")
-
         tk.Button(left_panel, text="Select image file(s)", font=('Helvetica', 10),
-                  command=self.select_files, width=17, height=1).pack(pady=(0, 20), anchor="w")
+                  command=self.select_files, width=17, height=1).pack(pady=(10, 20), anchor="w")
         tk.Button(left_panel, text="Convert", font=('Helvetica', 11, "bold"),
                   height=1, width=16, bg="#222", fg="#fff", command=self.convert_images).pack(pady=(0,5), anchor="w")
 
@@ -110,14 +103,13 @@ class ImageConverterTool:
     def convert_image(image):
         img = image.convert('RGB')
         data = np.array(img)
-        # reorder channels RGB to BGR
         data = data[..., [2, 1, 0]]
         flat = data.flatten(order='C')
         dtype = 'uint8_t'
         hex_fmt = '0x{:02x}'
         return flat, dtype, hex_fmt
 
-    def image_to_c_file(self, img_path):
+    def image_to_c_content(self, img_path):
         base = os.path.splitext(os.path.basename(img_path))[0]
         img = Image.open(img_path)
         arr, dtype, hex_fmt = self.convert_image(img)
@@ -163,10 +155,7 @@ class ImageConverterTool:
             "};\n"
         )
         c_content = header + data_array + struct_str
-        fname = os.path.abspath(f"{base}.c")
-        with open(fname, "w") as f:
-            f.write(c_content)
-        return fname
+        return base, c_content
 
     @staticmethod
     def human_size(num_bytes):
@@ -195,7 +184,7 @@ class ImageConverterTool:
         files = [f for f in files if f not in self.selected_files]
         if len(files) + len(self.selected_files) > MAX_IMAGES:
             messagebox.showerror("Image Limit Exceeded", f"Selecting these files would exceed the limit of {MAX_IMAGES} images.")
-            return  # Do not add any files
+            return
         for f in files:
             self.add_image_entry(f)
 
@@ -204,17 +193,31 @@ class ImageConverterTool:
             messagebox.showwarning("Missing Input", "Select image file(s).")
             return
 
+        # Ask once for folder to save all files
+        folder = filedialog.askdirectory(title="Select folder to save all .c files")
+        if not folder:
+            messagebox.showwarning("Save Cancelled", "Saving of files was cancelled.")
+            return
+
         results = []
         for file_path in self.selected_files:
-            output = self.image_to_c_file(file_path)
-            results.append(f"{os.path.basename(file_path)} → {os.path.basename(output)}")
+            base, c_content = self.image_to_c_content(file_path)
+            c_path = os.path.join(folder, f"{base}.c")
+            try:
+                with open(c_path, "w") as f:
+                    f.write(c_content)
+                results.append(f"{os.path.basename(file_path)} → {c_path}")
+            except Exception as e:
+                messagebox.showerror("Error Saving File", f"Failed to save {c_path}:\n{str(e)}")
 
-        messagebox.showinfo("Conversion Completed", "The following files were converted:\n\n" + "\n".join(results))
+        if results:
+            messagebox.showinfo("Conversion Completed", "The following files were converted:\n\n" + "\n".join(results))
+        else:
+            messagebox.showinfo("Conversion Completed", "No files were saved.")
 
     def run(self):
         self.root.mainloop()
 
-# Example usage:
 if __name__ == '__main__':
     tool = ImageConverterTool()
     tool.root.mainloop()
