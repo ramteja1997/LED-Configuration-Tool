@@ -15,7 +15,10 @@ class ImageConverterTool:
             self.root = tk.Tk()
             show_back = False
         else:
-            self.root = tk.Toplevel(parent)
+            self.root = tk.Toplevel(parent)  # initialize first!
+            self.root.transient(parent)
+            self.root.grab_set()
+            self.root.focus_set()
             show_back = True
 
             if show_back:
